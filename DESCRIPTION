@@ -1,0 +1,12 @@
+Package: vwmvp
+Type: Package
+Title: Variable Precision models in Visual Working Memory
+Version: 1.0
+Date: 2019-12-02
+Author: Nicholas Lange
+Maintainer: Nicholas Lange <lange.nk@gmail.com>
+Description: Variants of variable precision models for Visual Working memory data
+Imports: Rcpp (>= 1.0.3), BH
+Depends: tidyverse, circular, GA
+LinkingTo: Rcpp, BH
+RoxygenNote: 6.1.1

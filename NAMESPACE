@@ -1,0 +1,4 @@
+useDynLib(vwmvp, .registration=TRUE)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)
+

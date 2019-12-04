@@ -5,6 +5,13 @@
 
 FitVP <- function(data, model, type, rep = 10, startpar = NULL) {
   if (type == "sim"){
+    if (grepl("RNplus",model)){
+      lower <- lowerRNplus
+      upper <- upperRNplus
+    } else if (grepl("RNminus",model)){
+      lower <- lowerRNminus
+      upper <- upperRNminus
+    }
     res <- fit_one_vp_ga(data, rep, model, type, lower, upper, parallel = FALSE)
   } else if (type == "numint"){
     res <- fit_one_vp_nlminb(data, rep, model, type, startpar = NULL)
@@ -37,7 +44,6 @@ fit_one_vp_ga <- function(data, rep, model, type, lower, upper, ..., parallel = 
       colnames(pars) <- names(get_start_vp(model))
       pars$objective <- tmp@fitnessValue
       pars$iter <- tmp@iter
-      pars$type <- tmp@type
       pars$model <- model
       pars$time <- Sys.time() - tic
       pars$id <- dp$id
@@ -63,7 +69,7 @@ fit_one_vp_nlminb <- function(model, data, startpar, rep, ...) {
   } else {
   startpar <- data.frame(do.call(rbind, startpar))
   startpar <- startpar %>% 
-    #filter(cvid == dp$cvid) %>% 
+    filter(cvid == dp$cvid) %>% 
     select(names(get_start_vp(model))) 
   
   }

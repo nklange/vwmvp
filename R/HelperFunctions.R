@@ -3,13 +3,6 @@
 circ_null <- circular::circular(0)
 base_radians <- circular::circular((0:180) * 2 * pi/360)
 
-# GA Bounds 
-
-lowerRNminus <- rep(.Machine$double.eps,3)
-upperRNminus <- c(200,5,150)
-
-lowerRNplus <- rep(.Machine$double.eps,4)
-upperRNplus <- c(400,5,150,200)
 
 # preprocess data -----------------------------------------------------------
 

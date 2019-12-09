@@ -4,7 +4,7 @@ ll_vp_full <- function(pars, model, error_list, set_sizes, type ,...) {
   if (type == "sim") {
     ll_fun <- match.fun(paste0("csim_fun_",model))
   } else if (type == "numint") {
-    ll_fun <- ll_vp_numintwrap
+    ll_fun <- ll_vp_numint
   }
   
   precision <- pars[1]/(set_sizes^pars[2])
@@ -26,7 +26,7 @@ ll_vp_full <- function(pars, model, error_list, set_sizes, type ,...) {
   
 }
 
-ll_vp_numintwrap <- function(pars, errors, model) {
+ll_vp_numint <- function(pars, errors, model) {
 
 
   out <- vector("numeric", length(errors))

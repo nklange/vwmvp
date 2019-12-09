@@ -14,7 +14,8 @@ FitVP <- function(data, model, method, rep = 10, seqrun = 5, nsim = 1500, startp
       upper <- c(200,5,150)
     }
     
-    res <- fit_one_vp_ga(data, rep, model, lower, upper, seqrun, nsim, parallel = FALSE)
+    res <- fit_one_vp_ga(data = data, rep = rep, model = model, lower = lower, upper = upper, nsim = nsim, 
+                         seqrun = seqrun)
     
   } else if (method == "numint"){
     
@@ -26,7 +27,7 @@ FitVP <- function(data, model, method, rep = 10, seqrun = 5, nsim = 1500, startp
 
 
 # Genetic Algorithm ----------------------------------------------------------------------------------
-fit_one_vp_ga <- function(data, rep, model, lower, upper, parallel = parallel, nsim = nsim, seqrun = seqrun,...) {
+fit_one_vp_ga <- function(data, rep, model, lower, upper, nsim = nsim, seqrun = seqrun,...) {
   
   dp <- prep_data_index(data)
   
@@ -60,48 +61,6 @@ fit_one_vp_ga <- function(data, rep, model, lower, upper, parallel = parallel, n
   bind_rows(out_list)
 }
 
-
-ll_vp_sim <- function(pars, model, error_list, set_sizes, nsim...){
-  
-  precision <- pars[1]/(set_sizes^pars[2])
-  parscont <- c(pars[3])
-  
-  if (grepl("RNplus",model)){
-    parscont <- c(parscont,pars[4])
-  }
-  
-  ll_fun <- match.fun(paste0("sim_fun_",model))
-  
-  out <- vector("numeric", length(set_sizes))
-  
-  for (i in seq_along(error_list)) {
-    
-    temp <- ll_fun(x = nsim, pars = c(precision[i],parscont),base_radians = base_radians)
-    out[[i]] <- sum(log(temp[error_list[[i]]]))
-  }
-  
-  return(sum(out))
-}
-
-
-
-ll_vp_numint <- function(pars, model, error_list, set_sizes){
-  
-  precision <- pars[1]/(set_sizes^pars[2])
-  parscont <- c(pars[3])
-  
-  if (grepl("RNplus",model)){
-    parscont <- c(parscont,pars[4])
-  }
-  
-  out <- vector("numeric", length(set_sizes))
-  
-  for (i in seq_along(error_list)) {
-    out[[i]] <- numintroutine(pars = c(precision[i],parscont),errors=error_list[[i]],model=model)
-  }
-  
-  return(sum(out))
-}
 
 
 # Numerical Integration NLMINB ----------------------------------------------------------

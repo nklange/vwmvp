@@ -3,6 +3,15 @@
 circ_null <- circular::circular(0)
 base_radians <- circular::circular((0:180) * 2 * pi/360)
 
+kappa_map <- c(seq(0, 10, length.out = 250),seq(10.001,1e4,length.out = 250))
+J_map <- kappa_map*besselI(kappa_map,1,expon.scaled = TRUE)/besselI(kappa_map,0,expon.scaled = TRUE)
+mapJkappa <- approxfun(J_map,kappa_map, yleft = 0)
+
+KappafromJ <- function(J) {
+  out <- mapJkappa(J)
+  ifelse(is.na(out), J, out)
+}
+
 
 # preprocess data -----------------------------------------------------------
 

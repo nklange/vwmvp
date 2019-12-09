@@ -40,8 +40,8 @@ fit_one_vp_ga <- function(data, rep, model, lower, upper, nsim = nsim, seqrun = 
                        model = model, nsim = nsim,
                        ...,
                        #monitor = FALSE,
-                       lower = lower, upper = upper, 
-                       run = seqrun, parallel = parallel), 
+                       run = seqrun,
+                       lower = lower, upper = upper), 
                     error = function(e) NA)
     if (inherits(tmp, "ga")) {
       pars <- as_tibble(tmp@solution)

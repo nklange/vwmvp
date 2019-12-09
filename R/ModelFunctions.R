@@ -74,7 +74,7 @@ sim_fun_J_RNplus <- function(x, pars, base_radians){
   pchoose <- vector("numeric", 181)
   kc <- vector("numeric",181)
   
-  for (i in seq_len(nsim)) {
+  for (i in seq_len(x)) {
     
     kc <- sqrt(kappa_r^2 + kappas[i]^2 + 2 * kappa_r*kappas[i]*cos(base_radians))
     

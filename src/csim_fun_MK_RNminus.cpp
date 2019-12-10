@@ -1,6 +1,4 @@
-// [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
-#include <boost/math/special_functions/bessel.hpp>
 using namespace Rcpp;
 
 // [[Rcpp::export]]
@@ -23,7 +21,7 @@ NumericVector csim_fun_MK_RNminus(
     for (i = 0; i < x; i++) {
       
       radians = radians + 
-        1/(2*PI*exp(-kappa[i])*boost::math::cyl_bessel_i(0, kappa[i])) *
+        1/(2*PI*R::bessel_i(kappa[i], 0, 2)) *
           pow(exp(cos(baseradians[radian]) - 1 ),kappa[i]);
       
     }

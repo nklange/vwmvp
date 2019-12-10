@@ -6,6 +6,9 @@
 FitVP <- function(data, model, method, rep = 10, seqrun = 5, nsim = 1500, startpar = NULL) {
   
   if (method == "sim"){
+    
+    lower <- NULL
+    upper <- NULL
     if (grepl("RNplus",model)){
       lower <- rep(.Machine$double.eps,4)
       upper <- c(400,5,150,200)
@@ -14,16 +17,14 @@ FitVP <- function(data, model, method, rep = 10, seqrun = 5, nsim = 1500, startp
       upper <- c(200,5,150)
     }
     
-    res <- fit_one_vp_ga(data = data, rep = rep, model = model, lower = lower, upper = upper, nsim = nsim, 
-                         seqrun = seqrun)
+    res <- fit_one_vp_ga(data = data, rep = rep, model = model, lower = lower, upper = upper, nsim = nsim,seqrun = seqrun)
     
   } else if (method == "numint"){
     
-    res <- fit_one_vp_nlminb(data, rep, model, startpar = NULL)
+    res <- fit_one_vp_nlminb(data = data, rep = rep, model = model, startpar = startpar)
   }
   return(res)
 }
-
 
 
 # Genetic Algorithm ----------------------------------------------------------------------------------
@@ -96,7 +97,7 @@ fit_one_vp_nlminb <- function(model, data, startpar, rep, ...) {
                              eval.max = 300, 
                              iter.max = 300, 
                              trace = 1,
-                             rel.tol = 1e-5, ## default 1e-10, at 1e-3 difference between runs increases too much
+                             rel.tol = 1e-7, ## default 1e-10, at 1e-3 difference between runs increases too much
                              x.tol = 1.5e-5 ## default 1.5e-8
                            )), error = function(e) NA)
     if (is.list(tmp)) {

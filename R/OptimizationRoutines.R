@@ -22,7 +22,6 @@ ll_vp_sim <- function(pars, model, error_list, set_sizes, nsim, ...){
 }
 
 
-
 ll_vp_numint <- function(pars, model, error_list, set_sizes){
   
   precision <- pars[1]/(set_sizes^pars[2])
@@ -41,3 +40,41 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
   return(sum(out))
 }
 
+
+numintroutine <- function(pars, errors, model) {
+  
+  
+  out <- vector("numeric", length(errors))
+  for (i in seq_along(out)) {
+    out[i] <- tryCatch(
+      integrate(match.fun(paste0("cint_fun_",model)), 
+                0, Inf, 
+                pars, 
+                radian = errors[i], stop.on.error = FALSE)$value, 
+      error = function(e) tryCatch(
+        integrate(match.fun(paste0("cint_fun_",model)), 
+                  0, Inf, 
+                  pars,
+                  radian = if (errors[i] == 0) {
+                    circular(.Machine$double.xmin)  
+                  } else errors[i], stop.on.error = FALSE)$value), 
+      error = function(e) tryCatch(
+        integrate(match.fun(paste0("cint_fun_",model)), 
+                  0, Inf,   
+                  pars,
+                  radian = if (errors[i] == 0) {
+                    circular(.Machine$double.eps^2) 
+                  } else errors[i], stop.on.error = FALSE)$value), error = function(e) NA)
+  }
+  
+  
+  if (any(out == 0) | any(!is.finite(out))){
+    
+    return(1e6)
+    
+  } else {
+    return(-sum(log(out)))
+  }
+  
+  
+}

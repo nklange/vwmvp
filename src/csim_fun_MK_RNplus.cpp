@@ -1,7 +1,20 @@
 // [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
-#include <boost/math/special_functions/bessel.hpp>
+# include <cmath>
+# include <complex>
+# include <cstdlib>
+# include <cstring>
+# include <iomanip>
+# include <iostream>
+
 using namespace Rcpp;
+using namespace std;
+
+# include "fn.hpp"
+
+
+// [[Rcpp::export]]
+float r4_besi0e ( float x );
 
 // [[Rcpp::export]]
 NumericVector csim_fun_MK_RNplus(

@@ -20,7 +20,7 @@ NumericVector csim_fun_MK_RNminus(
     
     for (i = 0; i < x; i++) {
       
-      radians = radians + 
+      radians +=  
         1/(2*PI*R::bessel_i(kappa[i], 0, 2)) *
           pow(exp(cos(baseradians[radian]) - 1 ),kappa[i]);
       
@@ -30,5 +30,5 @@ NumericVector csim_fun_MK_RNminus(
     radians = 0;
   }
   
-  return(out/sum(out));
+  return((out/sum(out))*0.5);
 }

@@ -12,7 +12,7 @@ NumericVector csim_fun_MK_RNplus(
   int i;
   int radian;
   NumericVector kappa;
-  double kc;
+  NumericVector kc;
   int lr = baseradians.size();
   NumericVector out(lr);
   double radians = 0;
@@ -21,16 +21,16 @@ NumericVector csim_fun_MK_RNplus(
   
   for (radian = 0; radian < lr; radian++){
     
-    for (i = 0; i < x; i++) {
-
-      kc = sqrt(pow(pars[2], 2) + pow(kappa[i], 2) + 2 * pars[2]*kappa[i]*cos(baseradians[radian]));
+    kc = sqrt(pow(pars[2], 2) + pow(kappa, 2) + 2 * pars[2]*kappa*cos(baseradians[radian]));
+    
+    for (i = 0; i < x; i++) {+
       
       // Rcout << kc << std::endl;
       
-      radians += ((R::bessel_i(kc, 0, 2) /
+      radians += (R::bessel_i(kc[i], 0, 2) /
         (2*PI*R::bessel_i(kappa[i], 0, 2) *  
           R::bessel_i(pars[2], 0, 2))) *
-          exp(kc - (kappa[i] + pars[2])));
+          exp(kc[i] - (kappa[i] + pars[2]));
       
     }
     
@@ -38,5 +38,5 @@ NumericVector csim_fun_MK_RNplus(
     radians = 0;
   }
   
-  return(out/sum(out));
+  return((out/sum(out)) * 0.5);
 }

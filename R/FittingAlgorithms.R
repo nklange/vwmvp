@@ -63,7 +63,6 @@ fit_one_vp_ga <- function(data, rep, model, lower, upper, nsim = nsim, seqrun = 
 }
 
 
-
 # Numerical Integration NLMINB ----------------------------------------------------------
 
 fit_one_vp_nlminb <- function(model, data, startpar, rep, ...) {

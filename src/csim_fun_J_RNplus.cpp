@@ -1,6 +1,4 @@
-// [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
-#include <boost/math/special_functions/bessel.hpp>
 #include "vwmvp.hpp"
 using namespace Rcpp;
 
@@ -29,10 +27,10 @@ NumericVector csim_fun_J_RNplus(
       
       kc = sqrt(pow(pars[2], 2) + pow(kappa, 2) + 2 * pars[2]*kappa*cos(baseradians[radian]));
 
-      radians = radians + (exp(-kc)*boost::math::cyl_bessel_i(0, kc) /
-        (2*PI*exp(-kappa)*boost::math::cyl_bessel_i(0, kappa) *  
-          exp(-pars[2])*boost::math::cyl_bessel_i(0, pars[2]))) *
-          exp(kc - (kappa + pars[2]));
+      radians += (R::bessel_i(kc, 0, 2) /
+        (2*PI*R::bessel_i(kappa[i], 0, 2) *  
+          R::bessel_i(pars[2], 0, 2))) *
+          exp(kc - (kappa[i] + pars[2]));
       
     }
     

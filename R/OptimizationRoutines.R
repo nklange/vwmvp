@@ -8,7 +8,7 @@ ll_vp_sim <- function(pars, model, error_list, set_sizes, nsim, ...){
     parscont <- c(parscont,pars[4])
   }
   
-  ll_fun <- match.fun(paste0("csim_fun_",model))
+  ll_fun <- match.fun(paste0("sim_fun_",model))
   
   out <- vector("numeric", length(set_sizes))
   

@@ -22,32 +22,35 @@ KappafromJ <- function(J) {
 
 get_start_vp <- function(model) {
   
+  
+  #if (is.null(res_ga)) {
   if (model == "MK_RNminus") {
     start <- c(
-      mkappa1 = runif(1, 30, 60),
+      mkappa1 = runif(1, 10, 120),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 10, 40)
+      tau = runif(1, 0.5, 30)
     )
   } else if (model == "MK_RNplus") {
     start <- c(
-      mkappa1 = runif(1, 100, 200),
+      mkappa1 = runif(1, 50, 350),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 50, 130),
-      kappa_r = runif(1, 10, 70)
+      tau = runif(1, 10, 150),
+      kappa_r = runif(1, 10, 160)
     )
   } else if (model == "J_RNminus") {
     start <- c(
-      J1bar = runif(1, 50, 100),
+      J1bar = runif(1, 10, 120),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 10, 40)
+      tau = runif(1, 0.5, 30)
     )
   } else if (model == "J_RNplus") {
     start <- c(
-      J1bar = runif(1, 50, 100),
+      J1bar = runif(1, 50, 350),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 10, 40),
-      kappa_r = runif(1, 30, 60)
+      tau = runif(1, 10, 150),
+      kappa_r = runif(1, 10,160)
     )
+    #  }
   }
   return(start)
 }

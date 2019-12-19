@@ -71,6 +71,11 @@ fit_one_vp_nlminb <- function(model, data, startpar, rep, ...) {
   out_list <- vector("list", rep)
   
   if (is.null(startpar)){
+    startpar <- NULL
+    for (reps in c(1:rep)){
+      start1 <- get_start_vp(model)
+      startpar <- data.frame(rbind(startpar,start1))
+    }
     
   } else {
   startpar <- data.frame(do.call(rbind, startpar))
@@ -96,7 +101,7 @@ fit_one_vp_nlminb <- function(model, data, startpar, rep, ...) {
                              eval.max = 300, 
                              iter.max = 300, 
                              trace = 1,
-                             rel.tol = 1e-7, ## default 1e-10, at 1e-3 difference between runs increases too much
+                             rel.tol = 1e-5, ## default 1e-10, at 1e-3 difference between runs increases too much
                              x.tol = 1.5e-5 ## default 1.5e-8
                            )), error = function(e) NA)
     if (is.list(tmp)) {

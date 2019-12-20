@@ -25,19 +25,3 @@ cint_fun_MK_RNplus <- function(x, pars, radian) {
     .Call(`_vwmvp_cint_fun_MK_RNplus`, x, pars, radian)
 }
 
-csim_fun_J_RNminus <- function(x, pars, baseradians) {
-    .Call(`_vwmvp_csim_fun_J_RNminus`, x, pars, baseradians)
-}
-
-csim_fun_J_RNplus <- function(x, pars, baseradians) {
-    .Call(`_vwmvp_csim_fun_J_RNplus`, x, pars, baseradians)
-}
-
-csim_fun_MK_RNminus <- function(x, pars, baseradians) {
-    .Call(`_vwmvp_csim_fun_MK_RNminus`, x, pars, baseradians)
-}
-
-csim_fun_MK_RNplus <- function(x, pars, baseradians) {
-    .Call(`_vwmvp_csim_fun_MK_RNplus`, x, pars, baseradians)
-}
-

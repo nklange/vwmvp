@@ -57,68 +57,12 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// csim_fun_J_RNminus
-NumericVector csim_fun_J_RNminus(double x, NumericVector pars, NumericVector baseradians);
-RcppExport SEXP _vwmvp_csim_fun_J_RNminus(SEXP xSEXP, SEXP parsSEXP, SEXP baseradiansSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type baseradians(baseradiansSEXP);
-    rcpp_result_gen = Rcpp::wrap(csim_fun_J_RNminus(x, pars, baseradians));
-    return rcpp_result_gen;
-END_RCPP
-}
-// csim_fun_J_RNplus
-NumericVector csim_fun_J_RNplus(double x, NumericVector pars, NumericVector baseradians);
-RcppExport SEXP _vwmvp_csim_fun_J_RNplus(SEXP xSEXP, SEXP parsSEXP, SEXP baseradiansSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type baseradians(baseradiansSEXP);
-    rcpp_result_gen = Rcpp::wrap(csim_fun_J_RNplus(x, pars, baseradians));
-    return rcpp_result_gen;
-END_RCPP
-}
-// csim_fun_MK_RNminus
-NumericVector csim_fun_MK_RNminus(double x, NumericVector pars, NumericVector baseradians);
-RcppExport SEXP _vwmvp_csim_fun_MK_RNminus(SEXP xSEXP, SEXP parsSEXP, SEXP baseradiansSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type baseradians(baseradiansSEXP);
-    rcpp_result_gen = Rcpp::wrap(csim_fun_MK_RNminus(x, pars, baseradians));
-    return rcpp_result_gen;
-END_RCPP
-}
-// csim_fun_MK_RNplus
-NumericVector csim_fun_MK_RNplus(double x, NumericVector pars, NumericVector baseradians);
-RcppExport SEXP _vwmvp_csim_fun_MK_RNplus(SEXP xSEXP, SEXP parsSEXP, SEXP baseradiansSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type baseradians(baseradiansSEXP);
-    rcpp_result_gen = Rcpp::wrap(csim_fun_MK_RNplus(x, pars, baseradians));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_vwmvp_cint_fun_J_RNminus", (DL_FUNC) &_vwmvp_cint_fun_J_RNminus, 3},
     {"_vwmvp_cint_fun_J_RNplus", (DL_FUNC) &_vwmvp_cint_fun_J_RNplus, 3},
     {"_vwmvp_cint_fun_MK_RNminus", (DL_FUNC) &_vwmvp_cint_fun_MK_RNminus, 3},
     {"_vwmvp_cint_fun_MK_RNplus", (DL_FUNC) &_vwmvp_cint_fun_MK_RNplus, 3},
-    {"_vwmvp_csim_fun_J_RNminus", (DL_FUNC) &_vwmvp_csim_fun_J_RNminus, 3},
-    {"_vwmvp_csim_fun_J_RNplus", (DL_FUNC) &_vwmvp_csim_fun_J_RNplus, 3},
-    {"_vwmvp_csim_fun_MK_RNminus", (DL_FUNC) &_vwmvp_csim_fun_MK_RNminus, 3},
-    {"_vwmvp_csim_fun_MK_RNplus", (DL_FUNC) &_vwmvp_csim_fun_MK_RNplus, 3},
     {NULL, NULL, 0}
 };
 

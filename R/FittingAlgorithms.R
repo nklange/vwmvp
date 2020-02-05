@@ -35,21 +35,21 @@ FitVP <- function(data, model, method, rep = rep, seqrun = 5, nsim = 1500, start
 
 # Function
 
-fit_one_vp_ga <- function(data, rep, objective, model, ll_fun, lower, upper, ..., parallel = FALSE) {
+fit_one_vp_ga <- function(data = data, rep = rep, model = model, lower = lower, upper = upper, 
+                          nsim = nsim, seqrun = seqrun, parallel = FALSE) {
   dp <- prep_data_index(data)
   
   out_list <- vector("list", rep)
   
   for (i in seq_len(rep)) {
     tic <- Sys.time()
-    tmp <- tryCatch(GA::ga(type = "real-valued", fitness = objective, 
-                       ll_fun = ll_fun, 
+    tmp <- tryCatch(GA::ga(type = "real-valued", fitness = ll_vp_sim,
                        error_list = dp$datalist, set_sizes = dp$set_sizes,
                        model = model,
                        ...,
                        #monitor = FALSE,
-                       lower = lower, upper = upper, 
-                       run = 3, parallel = parallel), 
+                       lower = lower, upper = upper, nsim = nsim,
+                       run = seqrun, parallel = parallel), 
                     error = function(e) NA)
     if (inherits(tmp, "ga")) {
       pars <- tibble::as_tibble(tmp@solution)

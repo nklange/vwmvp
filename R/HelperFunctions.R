@@ -69,7 +69,7 @@ get_start_vp <- function(model) {
 
 prep_data <- function(data) {
 
-  dl <- split(circular(data$error_0), f = data$set_size)
+  dl <- split(circular::circular(data$error_0), f = data$set_size)
   id <- unique(data$id)
   set_sizes <- sort(unique(data$set_size))
   

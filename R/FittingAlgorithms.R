@@ -42,7 +42,7 @@ fit_one_vp_ga <- function(data, rep, objective, model, ll_fun, lower, upper, ...
   
   for (i in seq_len(rep)) {
     tic <- Sys.time()
-    tmp <- tryCatch(ga(type = "real-valued", fitness = objective, 
+    tmp <- tryCatch(GA::ga(type = "real-valued", fitness = objective, 
                        ll_fun = ll_fun, 
                        error_list = dp$datalist, set_sizes = dp$set_sizes,
                        model = model,
@@ -52,7 +52,7 @@ fit_one_vp_ga <- function(data, rep, objective, model, ll_fun, lower, upper, ...
                        run = 3, parallel = parallel), 
                     error = function(e) NA)
     if (inherits(tmp, "ga")) {
-      pars <- as_tibble(tmp@solution)
+      pars <- tibble::as_tibble(tmp@solution)
       colnames(pars) <- names(get_start_vp(model))
       pars$objective <- tmp@fitnessValue
       pars$iter <- tmp@iter
@@ -67,7 +67,7 @@ fit_one_vp_ga <- function(data, rep, objective, model, ll_fun, lower, upper, ...
       out_list[[i]] <- pars
     }
   }
-  bind_rows(out_list)
+  dplyr::bind_rows(out_list)
 }
 
 # Numerical Integration NLMINB ----------------------------------------------------------
@@ -116,34 +116,34 @@ fit_one_vp_nlminb <- function(data, rep, model, startpar, ...) {
     if (is.list(tmp)) {
       
       out_list[[i]] <- bind_cols(
-        spread(enframe(tmp$par), name, value) %>%
+        tidyr::spread(tibble::enframe(tmp$par), name, value) %>%
           setNames(sort(names(get_start_vp(model))))
-        , as_tibble(tmp[c(2, 3, 4, 6)])
-        , tibble(
+        , tibble::as_tibble(tmp[c(2, 3, 4, 6)])
+        , tibble::tibble(
           time = Sys.time() - tic
         )
-        , tibble (
+        , tibble::tibble (
           model = model
         )
-        , tibble (
+        , tibble::tibble (
           id = dp$id
         )
-        ,tibble (
+        , tibble::tibble (
           leftout = dp$leftout
         )
-        , tibble (
+        , tibble::tibble (
           rep = i
         )
-        ,tibble (
+        , tibble::tibble (
           exp = dp$exp
         )
-        , tibble (
+        , tibble::tibble (
           cvid = dp$cvid
         )
-        , spread(enframe(start, "start"), start, value) %>%
+        , tidyr::spread(tibble::enframe(start, "start"), start, value) %>%
           setNames(paste0("s_",sort(names(get_start_vp(model)))))
       )
     } 
   }
-  bind_rows(out_list)
+  dplyr::bind_rows(out_list)
 }

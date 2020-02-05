@@ -23,38 +23,46 @@ KappafromJ <- function(J) {
 get_start_vp <- function(model) {
   
   
+  
   #if (is.null(res_ga)) {
   if (model == "MK_RNminus") {
     start <- c(
-      mkappa1 = runif(1, 10, 120),
+      mkappa1 = runif(1, 30, 60),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 0.5, 30)
+      tau = runif(1, 10, 40)
     )
-  } else if (model == "MK_RNplus") {
+  } else if (model == "MK_RNplus")  {
     start <- c(
-      mkappa1 = runif(1, 50, 350),
+      mkappa1 = runif(1, 100, 200),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 10, 150),
-      kappa_r = runif(1, 10, 160)
+      tau = runif(1, 50, 130),
+      kappa_r = runif(1, 10, 70)
     )
   } else if (model == "J_RNminus") {
     start <- c(
-      J1bar = runif(1, 10, 120),
+      J1bar = runif(1, 50, 100),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 0.5, 30)
+      tau = runif(1, 10, 40)
     )
   } else if (model == "J_RNplus") {
     start <- c(
-      J1bar = runif(1, 50, 350),
+      J1bar = runif(1, 50, 100),
       alpha = runif(1, 0.5, 2),
-      tau = runif(1, 10, 150),
-      kappa_r = runif(1, 10,160)
+      tau = runif(1, 10, 40),
+      kappa_r = runif(1, 30, 60)
     )
     #  }
+  } else if (model %in%  c("MK_P_RNplus","MK_U_RNplus","MK_F_RNplus"))  {
+    start <- c(
+      mkappa1 = runif(1, 100, 200),
+      alpha = runif(1, 0.5, 2),
+      tau = runif(1, 50, 130),
+      kappa_r = runif(1, 10, 70),
+      K = runif(1,0,10)
+    )
   }
   return(start)
 }
-
 
 
 # nlminb: fit radians -------------------------------------------------------

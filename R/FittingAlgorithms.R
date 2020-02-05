@@ -1,9 +1,3 @@
-#' @import magrittr
-#' @import dplyr
-#' @import tidyr
-#' @import tibble
-#' @import circular
-#' @import GA
 
 
 FitVP <- function(data, model, method, rep = rep, seqrun = 5, nsim = 1500, startpar = NULL) {

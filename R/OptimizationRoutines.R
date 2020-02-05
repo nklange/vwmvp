@@ -22,34 +22,28 @@ ll_vp_sim <- function(pars, model, error_list, set_sizes, nsim, ...){
 }
 
 
+
 ll_vp_numint <- function(pars, model, error_list, set_sizes){
   
-  if (model %in% c("MK_F_RNplus")){
-    #pars <- c(100,10,10,10,5.6)
+  if (model == c("MK_F_RNplus")){
+    
     K_range <- unique(c(set_sizes,pars[5]))
     K_range <- K_range[K_range <= max(set_sizes)]
     K_range <- K_range[K_range <= pars[5]]
     precision <- pars[1]/(K_range^pars[2])
     parscont <- c(pars[3],pars[4],pars[5])
     
-  } else if (model %in% c("MK_P_RNplus")){
+  } else if (model == c("MK_P_RNplus")){
+    
     K_range <- c(0:max(set_sizes))
-    #K_range <- c(0,1,2,3,4,5,6,7,8)
-    #K <- 4
     poissW <- dpois(c(0:(max(K_range)-1)), pars[5], log = FALSE)
     poissW <- c(poissW,1-sum(poissW))
     
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3])
+    parscont <- c(pars[3],pars[4])
     
-    if (grepl("RNplus",model)){
-      parscont <- c(parscont,pars[4])
-    }
-    
-    
-    # poissW <- dpois(c(0:max(K_range)), K, log = FALSE)
-    # poissW <- poissW/sum(poissW)
   }  else if (model == "MK_U_RNplus") {
+    
     K_range <- c(0:max(set_sizes))
     precision <- pars[1]/(K_range^pars[2])
     parscont <- c(pars[3],pars[4],pars[5])
@@ -73,21 +67,23 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     
     if (model %in% c("MK_F_RNplus")){
       
-      out[[i]] <- numintroutineF(precision = precision, parscont = parscont, K_range = K_range, errors=error_list[[i]],
+      out[[i]] <- numintroutineF(precision = precision, parscont = parscont, K_range = K_range, errors = error_list[[i]],
                                  set_sizes = set_sizes, sz = i)
       
     } else if (model %in% c("MK_P_RNplus")) {
       
-      out[[i]] <- numintroutineP(precision = precision, parscont = parscont, poissW = poissW, K_range = K_range, errors=error_list[[i]],
+      out[[i]] <- numintroutineP(precision = precision, parscont = parscont, poissW = poissW, K_range = K_range, errors = error_list[[i]],
                                  set_sizes = set_sizes, sz = i)
       
     } else if (model %in% c("MK_U_RNplus")) {
       
-      out[[i]] <- numintroutineU(precision = precision, parscont = parscont, K_range = K_range, errors=error_list[[i]],
+      out[[i]] <- numintroutineU(precision = precision, parscont = parscont, K_range = K_range, errors = error_list[[i]],
                                  set_sizes = set_sizes, sz = i)
       
     } else {
-      pars <- c(precision[i],parscont)
+      
+      out[[i]] <- numintroutine(precision = precision[i], parscont = parscont, errors = error_list[[i]], model = model)
+      
     }
     
     
@@ -96,6 +92,49 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
   return(sum(out))
 }
 
+numintroutine <- function(precision, parscont, errors, model) {
+  
+  coreFunction <- paste0("cint_fun_",model)
+  
+  out <- vector("numeric", length(errors))
+  
+  pars <- c(precision,parscont)
+  
+  
+  for (i in seq_along(out)) {
+    
+    out[i] <- tryCatch(
+      integrate(match.fun(coreFunction), 
+                0, Inf, 
+                pars,
+                radian = errors[i], stop.on.error = FALSE)$value, 
+      error = function(e) tryCatch(
+        integrate(match.fun(coreFunction), 
+                  0, Inf, 
+                  pars,
+                  radian = if (errors[i] == 0) {
+                    circular(.Machine$double.xmin)  
+                  } else errors[i], stop.on.error = FALSE)$value), 
+      error = function(e) tryCatch(
+        integrate(match.fun(coreFunction), 
+                  0, Inf,   
+                  pars,
+                  radian = if (errors[i] == 0) {
+                    circular(.Machine$double.eps^2) 
+                  } else errors[i], stop.on.error = FALSE)$value), error = function(e) NA)
+  }
+  
+  
+  if (any(out == 0) | any(!is.finite(out))){
+    
+    return(1e6)
+    
+  } else {
+    return(-sum(log(out)))
+  }
+  
+  
+}
 
 numintroutineF <- function(precision, parscont, K_range, errors, set_sizes, sz) {
   

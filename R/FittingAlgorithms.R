@@ -93,7 +93,7 @@ fit_one_vp_nlminb <- function(data, rep, model, startpar, ...) {
   }
   
   for (i in seq_len(rep)) {
-    print(startpar)
+    #print(startpar)
     
     start <- startpar %>% 
       slice(i) %>% 

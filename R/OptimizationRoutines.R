@@ -211,7 +211,7 @@ numintroutineU <- function(precision, parscont, K_range, errors, set_sizes, sz) 
     } else {
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[match(set_sizes[[sz]],K_range)],parscont[c(1,2)])
+      pars <- c(precision[length(precision)],parscont[c(1,2)])
       
       for (i in seq_along(err)) {
         

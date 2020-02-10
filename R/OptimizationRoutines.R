@@ -254,25 +254,8 @@ numintroutineP <- function(precision, parscont, poissW, errors, K_range, set_siz
       
       for (i in seq_along(err)) {
         
-        err[i] <- tryCatch(
-          integrate(match.fun(coreFunction), 
-                    0, Inf, 
-                    pars,
-                    radian = errors[i], stop.on.error = FALSE)$value, 
-          error = function(e) tryCatch(
-            integrate(match.fun(coreFunction), 
-                      0, Inf, 
-                      pars,
-                      radian = if (errors[i] == 0) {
-                        circular(.Machine$double.xmin)  
-                      } else errors[i], stop.on.error = FALSE)$value), 
-          error = function(e) tryCatch(
-            integrate(match.fun(coreFunction), 
-                      0, Inf,   
-                      pars,
-                      radian = if (errors[i] == 0) {
-                        circular(.Machine$double.eps^2) 
-                      } else errors[i], stop.on.error = FALSE)$value), error = function(e) NA)
+        err[i] <- vp_integration(error = errors[i], pars = pars, 
+                             coreFunction = coreFunction)
       }
       
       pEncode <- min(K_range[[j]]/set_sizes[[sz]],1)
@@ -284,25 +267,8 @@ numintroutineP <- function(precision, parscont, poissW, errors, K_range, set_siz
       
       for (i in seq_along(err)) {
         
-        err[i] <- tryCatch(
-          integrate(match.fun(coreFunction), 
-                    0, Inf, 
-                    pars,
-                    radian = errors[i], stop.on.error = FALSE)$value, 
-          error = function(e) tryCatch(
-            integrate(match.fun(coreFunction), 
-                      0, Inf, 
-                      pars,
-                      radian = if (errors[i] == 0) {
-                        circular(.Machine$double.xmin)  
-                      } else errors[i], stop.on.error = FALSE)$value), 
-          error = function(e) tryCatch(
-            integrate(match.fun(coreFunction), 
-                      0, Inf,   
-                      pars,
-                      radian = if (errors[i] == 0) {
-                        circular(.Machine$double.eps^2) 
-                      } else errors[i], stop.on.error = FALSE)$value), error = function(e) NA)
+        err[i] <- vp_integration(error = errors[i], pars = pars, 
+                             coreFunction = coreFunction)
       }
       
       out <- out + poissW[[j]]*err

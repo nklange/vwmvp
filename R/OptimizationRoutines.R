@@ -176,10 +176,15 @@ numintroutineF <- function(precision, parscont, K_range, errors, set_sizes, sz) 
 
 numintroutineU <- function(precision, parscont, K_range, errors, set_sizes, sz) {
   
-  unifw <- rep(1/(parscont[3]+1),parscont[3]+1)
-  unifw <- unifw[1:min(parscont[3]+1,set_sizes[[sz]]+1)]
-  unifw[length(unifw)] <- 1-sum(unifw[1:(length(unifw) -1)])
-  
+  ## calculate proportion of real part of K from total K
+  unifw_real <- (parscont[3] - floor(parscont[3])) / parscont[3] 
+  ## calculate weight for integer K values from 0 to floor(K)
+  unifw_int <- rep((1 - unifw_real)/ceiling(parscont[3]), ceiling(parscont[3]))
+  ## weights for 0:ceiling(K)
+  unifw_all <- c(unifw_int, unifw_real)
+  ## restrict weights to current set_size and give remainder to last set_size
+  unifw <- unifw_all[1:min(ceiling(parscont[3])+1,set_sizes[[sz]]+1)]
+  unifw[length(unifw)] <- 1-sum(unifw[1:(length(unifw)-1)])
   
   coreFunction <- "cint_fun_MK_RNplus"
   

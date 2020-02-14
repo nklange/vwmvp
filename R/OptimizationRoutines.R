@@ -54,14 +54,14 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     fmW <- c(1-realK,realK)
     
   } else if (model == c("MK_P_RNplus")){
+
     
     K_range <- c(0:max(set_sizes))
     poissW <- dpois(c(0:(max(K_range)-1)), pars[5], log = FALSE)
     poissW <- c(poissW,1-sum(poissW))
     
     precision <- pars[1]/(K_range^pars[2])
-    #parscont <- c(pars[3],pars[4])
-    parscont <- c(pars[3],pars[4],pars[5])
+    parscont <- c(pars[3],pars[4])
     
   } else if (model == "MK_U_RNplus") {
     
@@ -249,9 +249,7 @@ numintroutineFM <- function(precision, parscont, weights, K_range, errors, set_s
 }
 
 numintroutineU <- function(precision, parscont, K_range, errors, set_sizes, sz) {
-
-  
-  
+ 
   ## calculate proportion of real part of K from total K
   unifw_real <- (parscont[3] - floor(parscont[3])) / parscont[3] 
   ## calculate weight for integer K values from 0 to floor(K)
@@ -261,13 +259,13 @@ numintroutineU <- function(precision, parscont, K_range, errors, set_sizes, sz) 
   ## restrict weights to current set_size and give remainder to last set_size
   unifw <- unifw_all[1:min(ceiling(parscont[3])+1,set_sizes[[sz]]+1)]
   unifw[length(unifw)] <- 1-sum(unifw[1:(length(unifw)-1)])
-  
+
   coreFunction <- "cint_fun_MK_RNplus"
   
   out <- vector("numeric", length(errors))
-  for (j in c(1:length(unifw))){ #runs from 0
+  for (j in c(1:length(unifw))){ # K = 0 to K = min(floor(Kpar),setsizes[[sz]]) integer items
     
-    K <- j - 1 #to start from Kitems = 0
+    K <- j - 1
     
     
     if (K < set_sizes[[sz]]){
@@ -282,12 +280,12 @@ numintroutineU <- function(precision, parscont, K_range, errors, set_sizes, sz) 
       }
       
       pEncode <- K/set_sizes[[sz]]
-      out <- out + unifw[[j]]*(pEncode*err + (1-pEncode)*one_two_pi)
+      out <- out +  unifw[[j]]*(pEncode*err + (1-pEncode)*one_two_pi)
       
     } else {
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[length(precision)],parscont[c(1,2)])
+      pars <- c(precision[[(set_sizes[[sz]] +1)]],parscont[c(1,2)])
       
       for (i in seq_along(err)) {
         
@@ -295,12 +293,12 @@ numintroutineU <- function(precision, parscont, K_range, errors, set_sizes, sz) 
                              coreFunction = coreFunction)
       }
       
-      out <- out + unifw[[j]]*err
+      out <- out +  unifw[[j]]*err
     }
     
     
   }
-  # out <- out/length(K_range)
+
   
   if (any(out == 0) | any(!is.finite(out))){
     
@@ -313,41 +311,42 @@ numintroutineU <- function(precision, parscont, K_range, errors, set_sizes, sz) 
   
 }
 
-numintroutineP <- function(precision, parscont, weights, errors, K_range, set_sizes, sz) {
+numintroutineP <- function(precision, parscont, weights, K_range, errors, set_sizes, sz) {
   
   coreFunction <- "cint_fun_MK_RNplus"
   
   out <- vector("numeric", length(errors))
-  for (j in c(1:length(K_range))){
+  for (j in c(1:length(weights))){ # K = 0 to K = max(setsize) integer items
+    
+    K <- j - 1 #to start from Kitems = 0
     
     
-    
-    
-    if (K_range[[j]] < set_sizes[[sz]]){
+    if (K < set_sizes[[sz]]){
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[[j]],parscont)
+      pars <- c(precision[[j]],parscont[c(1,2)])
       
       for (i in seq_along(err)) {
         
         err[i] <- vp_integration(error = errors[i], pars = pars, 
-                             coreFunction = coreFunction)
+                                 coreFunction = coreFunction)
       }
       
-      pEncode <- min(K_range[[j]]/set_sizes[[sz]],1)
-      out <- out + poissW[[j]]*(pEncode*err + (1-pEncode)*(1/2/pi))
+      pEncode <- K/set_sizes[[sz]]
+      out <- out +  weights[[j]]*(pEncode*err + (1-pEncode)*one_two_pi)
+      
     } else {
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[match(set_sizes[[sz]],K_range)],parscont)
+      pars <- c(precision[[(set_sizes[[sz]] + 1)]],parscont[c(1,2)])
       
       for (i in seq_along(err)) {
         
         err[i] <- vp_integration(error = errors[i], pars = pars, 
-                             coreFunction = coreFunction)
+                                 coreFunction = coreFunction)
       }
       
-      out <- out + poissW[[j]]*err
+      out <- out +  weights[[j]]*err
     }
     
     

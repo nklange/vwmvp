@@ -1,6 +1,6 @@
 
 
-FitVP <- function(data, model, method, rep = rep, seqrun = 5, nsim = 1500, startpar = NULL) {
+FitVP <- function(data, model, method = "numint", rep = rep, seqrun = 5, nsim = 1500, startpar = NULL) {
   
   
   res <- NULL

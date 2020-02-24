@@ -98,6 +98,15 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     precision <- pars[1]/(K_range^pars[2])
     parscont <- c(pars[3],pars[4])
     
+  } else if (model %in% c("SA_RNplus")){
+    
+    parscont <- pars[1]
+    
+  } else if (model %in% c("SA_F_RNplus")){
+    
+    precision <- pars[1]
+    parscont <- c(pars[2],pars[3])
+    
   } else if (model %in% c("MK_RNplus","MK_RNminus","J_RNplus","J_RNminus")) {
     
     K_range <- set_sizes
@@ -154,6 +163,16 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
       
       out[[i]] <- ep_u_routine(precision = precision, parscont = parscont, errors = error_list[[i]],
                                set_sizes = set_sizes, sz = i)
+      
+    } else if (model %in% c("SA_RNplus")){
+      
+      out[[i]] <- sa_routine(pars = c(parscont), errors = error_list[[i]])
+      
+      
+    } else if (model %in% c("SA_F_RNplus")){
+      
+      out[[i]] <- sa_f_routine(pars = c(precision,parscont), errors = error_list[[i]], set_sizes = set_sizes, sz = i)
+      
       
     } else  if (model %in% c("MK_RNplus","MK_RNminus","J_RNplus","J_RNminus")){
       
@@ -554,4 +573,42 @@ vp_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz) {
 }
 
 
-
+sa_routine <- function(pars, errors){
+  
+  out <- vector("numeric",length(errors))
+  
+  out <-   1 / (2 * pi * besselI(x = pars[1],nu = 0,expon.scaled = TRUE)) *
+    (exp(cos(errors) - 1)) ^ pars[1]
+  
+  
+  if (any(out == 0) | any(!is.finite(out))){
+    
+    return(1e6)
+    
+  } else {
+    return(-sum(log(out)))
+  }
+}
+# sa_f_routine <- function(pars, errors, set_sizes, sz){
+#   
+#   if (pars[3] <= set_sizes[[sz]]){
+#     
+#     pEncode <-  pars[3] / set_sizes[[sz]]
+#     pars_lim <- pars[c(1,2)]
+#   
+#     err <- ep_integration(pars = pars_lim,errors)
+#   
+#     out <- pEncode*err + (1-pEncode)*one_two_pi
+#   } else {
+#     
+#   }
+#   
+#   if (any(out == 0) | any(!is.finite(out))){
+#     
+#     return(1e6)
+#     
+#   } else {
+#     return(-sum(log(out)))
+#   }
+#   
+# }

@@ -59,7 +59,7 @@ get_start_vp <- function(model) {
       kappa_r = runif(1, 30, 60)
     )
     #  }
-  } else if (model == "EP_F_RNplus") {
+  } else if (model %in% c("EP_F_RNplus","EP_P_RNplus","EP_U_RNplus","EP_FM_RNplus")) {
     start <- c(
       mkappa1 = runif(1, 50, 100),
       alpha = runif(1, 0.5, 2),

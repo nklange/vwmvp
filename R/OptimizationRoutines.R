@@ -589,26 +589,38 @@ sa_routine <- function(pars, errors){
     return(-sum(log(out)))
   }
 }
-# sa_f_routine <- function(pars, errors, set_sizes, sz){
-#   
-#   if (pars[3] <= set_sizes[[sz]]){
-#     
-#     pEncode <-  pars[3] / set_sizes[[sz]]
-#     pars_lim <- pars[c(1,2)]
-#   
-#     err <- ep_integration(pars = pars_lim,errors)
-#   
-#     out <- pEncode*err + (1-pEncode)*one_two_pi
-#   } else {
-#     
-#   }
-#   
-#   if (any(out == 0) | any(!is.finite(out))){
-#     
-#     return(1e6)
-#     
-#   } else {
-#     return(-sum(log(out)))
-#   }
-#   
-# }
+sa_f_routine <- function(pars, errors, set_sizes, sz){
+  
+  Sz <- set_sizes[[sz]]
+  pEncode <-  pars[3] / Sz
+
+  if (pEncode <= 1){
+
+    pars_lim <- pars[c(1,2)]
+
+    err <- ep_integration(pars = pars_lim,errors)
+
+    out <- pEncode*err + (1-pEncode)*one_two_pi
+    
+  } else {
+    
+    phigh <- (pars[3] %% Sz)/Sz # proportion of items that are encoded with the higher precision
+    kappa_low <- pars[1] * floor(pEncode) # precision for 1 item times the increase in precision given by K exceeding Sz
+    kappa_high <- pars[1] * (floor(pEncode)+1) # as above but extra precision if single quanta of precision don't neatly map onto items
+    
+    err_high <- ep_integration(pars = c(kappa_high,pars[2]),errors)
+    err_low <- ep_integration(pars = c(kappa_low,pars[2]),errors)
+    
+    out <- phigh * err_high + (1 - phigh) * err_low
+
+  }
+
+  if (any(out == 0) | any(!is.finite(out))){
+
+    return(1e6)
+
+  } else {
+    return(-sum(log(out)))
+  }
+
+}

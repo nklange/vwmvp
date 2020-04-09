@@ -67,10 +67,23 @@ get_start_vp <- function(model) {
       K = runif(1,0,10)
     )
     #  }
-  }  else if (model %in% c("SA_F_RNplus","SA_P_RNplus","SA_U_RNplus","SA_FM_RNplus")) {
+  } else if (model %in% c("EP_F_RNminus")) {
+    start <- c(
+      mkappa1 = runif(1, 50, 100),
+      alpha = runif(1, 0.5, 2),
+      K = runif(1,0,10)
+    )
+    #  }
+  } else if (model %in% c("SA_F_RNplus","SA_P_RNplus","SA_U_RNplus","SA_FM_RNplus")) {
     start <- c(
       mkappa1 = runif(1, 50, 100),
       kappa_r = runif(1, 30, 60),
+      K = runif(1,0,10)
+    )
+    #  }
+  } else if (model %in% c("SA_F_RNminus")) {
+    start <- c(
+      mkappa1 = runif(1, 50, 100),
       K = runif(1,0,10)
     )
     #  }
@@ -87,10 +100,16 @@ get_start_vp <- function(model) {
       kappa_r = runif(1, 10, 70),
       K = runif(1,0,10)
     )
+  } else if (model %in%  c("MK_P_RNminus","MK_U_RNminus","MK_F_RNminus","MK_FM_RNminus"))  {
+    start <- c(
+      mkappa1 = runif(1, 50, 100),
+      alpha = runif(1, 0.5, 2),
+      tau = runif(1, 50, 130),
+      K = runif(1,0,10)
+    )
   }
   return(start)
 }
-
 
 # nlminb: fit radians -------------------------------------------------------
 

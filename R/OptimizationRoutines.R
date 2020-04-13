@@ -26,148 +26,119 @@ ll_vp_sim <- function(pars, model, error_list, set_sizes, nsim, ...){
 
 ll_vp_numint <- function(pars, model, error_list, set_sizes){
   
-
   
-  if (model %in% c("MK_F_RNplus")){
+  if (model %in% c("MK_F_RNplus","MK_F_RNminus")){
 
     #final value in K_range is non-integer K for precision(K,mKappa,alpha) for cases of K < SetSize
     #for K >= SetSize precision(SetSize,mKappa,alpha)
-    SzK <- unique(c(set_sizes,pars[5]))
-    K_range <- c(SzK[SzK <= pmin(max(SzK), pars[5])]) # if K > max(Sz) length of precision is higher than sz
+    SzK <- unique(c(set_sizes,pars[length(pars)]))
+    K_range <- c(SzK[SzK <= pmin(max(SzK), pars[length(pars)])]) # if K > max(Sz) length of precision is higher than sz
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4],pars[5])
+    parscont <- c(pars[3:length(pars)])
     
-  } else if (model %in% c("MK_F_RNminus")){
-    
-    #final value in K_range is non-integer K for precision(K,mKappa,alpha) for cases of K < SetSize
-    #for K >= SetSize precision(SetSize,mKappa,alpha)
-    SzK <- unique(c(set_sizes,pars[4]))
-    K_range <- c(SzK[SzK <= pmin(max(SzK), pars[4])]) # if K > max(Sz) length of precision is higher than sz
-    precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4])
-    
-  } else if (model %in% c("MK_FM_RNplus")){
+  } else if (model %in% c("MK_FM_RNplus","MK_FM_RNminus")){
 
     #final value in K_range is integer ceiling(K) for precision(ceiling(K),mKappa,alpha) for cases of K < SetSize
     #second to final value in K_range is integer floor(K) for precision(floor(K),mKappa,alpha) for cases of K < SetSize
     # remaining values are set sizes smaller K: for K >= SetSize for precision(SetSize,mKappa,alpha)
     
     
-    K_range <- c(set_sizes[set_sizes <= pmin(max(set_sizes), pars[5])], floor(pars[5]), ceiling(pars[5]))
+    K_range <- c(set_sizes[set_sizes <= pmin(max(set_sizes), pars[length(pars)])], 
+                 floor(pars[length(pars)]), ceiling(pars[length(pars)]))
+    
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4],pars[5])
+    parscont <- c(pars[3:length(pars)])
     
     # mixture weights for floor(K),ceiling(K) from real part of non-integer K
-    realK <- parscont[3] - floor(parscont[3])
+    realK <- pars[length(pars)] - floor(pars[length(pars)])
     fmW <- c(1-realK,realK)
     
-  } else if (model == c("MK_P_RNplus")){
+  } else if (model %in% c("MK_P_RNplus","MK_P_RNminus")){
 
     
     K_range <- c(0:max(set_sizes))
-    poissW <- dpois(c(0:(max(K_range)-1)), pars[5], log = FALSE)
+    poissW <- dpois(c(0:(max(K_range)-1)), pars[length(pars)], log = FALSE)
     poissW <- c(poissW,1-sum(poissW))
     
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4])
+    parscont <- c(pars[3:(length(pars) - 1)])
     
-  } else if (model == c("MK_P_RNminus")){
-    
-    
-    K_range <- c(0:max(set_sizes))
-    poissW <- dpois(c(0:(max(K_range)-1)), pars[4], log = FALSE)
-    poissW <- c(poissW,1-sum(poissW))
-    
-    precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3])
-    
-  } else if (model == "MK_U_RNplus") {
-    
-    #pars <- c(124,1.6,56,60,5)
+  } else if (model %in% c("MK_U_RNplus","MK_U_RNminus")) {
     
     K_range <- c(0:max(set_sizes))
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4],pars[5])
+    parscont <- c(pars[3:length(pars)])
     
-  } else if (model == "MK_U_RNminus") {
-    
-    #pars <- c(124,1.6,56,60,5)
-    
-    K_range <- c(0:max(set_sizes))
-    precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4])
-    
-  } else if (model == "EP_RNplus") {
+  } else if (model %in%  c("EP_RNplus","EP_RNminus")) {
     
     K_range <- set_sizes
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3])
     
-  } else if (model %in% c("EP_F_RNplus")){
+    if (grepl("RNplus",model)) {
+      parscont <- c(pars[3])
+    } else {
+      parscont <- c()
+    }
     
-    #final value in K_range is non-integer K for precision(K,mKappa,alpha) for cases of K < SetSize
-    #for K >= SetSize precision(SetSize,mKappa,alpha)
-    SzK <- unique(c(set_sizes,pars[4]))
-    K_range <- c(SzK[SzK <= pmin(max(SzK), pars[4])]) # if K > max(Sz) length of precision is higher than sz
-    precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4])
-    
-  } else if (model %in% c("EP_F_RNminus")){
+  } else if (model %in% c("EP_F_RNplus","EP_F_RNminus")){
     
     #final value in K_range is non-integer K for precision(K,mKappa,alpha) for cases of K < SetSize
     #for K >= SetSize precision(SetSize,mKappa,alpha)
-    SzK <- unique(c(set_sizes,pars[3]))
-    K_range <- c(SzK[SzK <= pmin(max(SzK), pars[3])]) # if K > max(Sz) length of precision is higher than sz
+    SzK <- unique(c(set_sizes,pars[length(pars)]))
+    K_range <- c(SzK[SzK <= pmin(max(SzK), pars[length(pars)])]) # if K > max(Sz) length of precision is higher than sz
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3])
+    parscont <- c(pars[3:length(pars)])
     
-  }  else if (model == c("EP_P_RNplus")){
-    
+  } else if (model %in% c("EP_P_RNplus","EP_P_RNminus")){
+
+  
     K_range <- c(0:max(set_sizes))
-    poissW <- dpois(c(0:(max(K_range)-1)), pars[4], log = FALSE)
+    poissW <- dpois(c(0:(max(K_range)-1)), pars[length(pars)], log = FALSE)
     poissW <- c(poissW,1-sum(poissW))
-    
+
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3])
+
+    if (grepl("RNplus",model)) {
+      parscont <- c(pars[3:(length(pars)-1)])
+    } else {
+      parscont <- c()
+    }
+
     
-  } else if (model == "EP_U_RNplus") {
+  } else if (model %in% c("EP_U_RNplus","EP_U_RNminus")) {
     
     K_range <- c(0:max(set_sizes))
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3],pars[4])
+    parscont <- c(pars[3:length(pars)])
     
   } else if (model %in% c("SA_RNplus")){
     
     parscont <- pars[1]
     
-  } else if (model %in% c("SA_F_RNplus","SA_U_RNplus")){
+  } else if (model %in% c("SA_F_RNplus","SA_U_RNplus","SA_F_RNminus","SA_U_RNminus")){
     
     precision <- pars[1]
-    parscont <- c(pars[2],pars[3])
+    parscont <- c(pars[2:length(pars)])
     
-  } else if (model %in% c("SA_F_RNminus")){
-    
-    precision <- pars[1]
-    parscont <- c(pars[2])
-    
-  } else if (model == c("SA_P_RNplus")){
+  }  else if (model %in% c("SA_P_RNplus","SA_P_RNminus")){
     
     K_range <- c(0:max(set_sizes))
-    poissW <- dpois(c(0:(max(K_range)-1)), pars[3], log = FALSE)
+    poissW <- dpois(c(0:(max(K_range)-1)), pars[length(pars)], log = FALSE)
     poissW <- c(poissW,1-sum(poissW))
     
     precision <- pars[1]
-    parscont <- c(pars[2])
+    
+    if (grepl("RNplus",model)){
+      parscont <- c(pars[length(pars)-1])
+    } else {
+      parscont <- c()
+    }
     
   } else if (model %in% c("MK_RNplus","MK_RNminus","J_RNplus","J_RNminus")) {
     
     K_range <- set_sizes
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3])
-    
-    if (grepl("RNplus",model)){
-      parscont <- c(parscont,pars[4])
-    }
+    parscont <- c(pars[3:length(pars)])
     
     
   }
@@ -179,12 +150,13 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     
     if (model %in% c("MK_F_RNplus","MK_F_RNminus")){
       
-      out[[i]] <- vp_f_routine(precision = precision, parscont = parscont, errors = error_list[[i]], set_sizes = set_sizes, sz = i, model = model)
+      out[[i]] <- vp_f_routine(precision = precision, parscont = parscont, errors = error_list[[i]], 
+                               set_sizes = set_sizes, sz = i, model = model)
       
-    } else if (model %in% c("MK_FM_RNplus")){
+    } else if (model %in% c("MK_FM_RNplus","MK_FM_RNminus")){
       
       out[[i]] <- vp_fm_routine(precision = precision, parscont = parscont, weights = fmW, errors = error_list[[i]],
-                                 set_sizes = set_sizes, sz = i)
+                                 set_sizes = set_sizes, sz = i, model = model)
       
     } else if (model %in% c("MK_P_RNplus","MK_P_RNminus")) {
       
@@ -196,25 +168,27 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
       out[[i]] <- vp_u_routine(precision = precision, parscont = parscont, errors = error_list[[i]],
                                  set_sizes = set_sizes, sz = i,model = model)
       
-    } else if (model %in% c("EP_RNplus")){
+    } else if (model %in% c("EP_RNplus","EP_RNminus")){
 
-      out[[i]] <- ep_routine(pars = c(precision[i],parscont), errors = error_list[[i]])
+      out[[i]] <- ep_routine(pars = c(precision[i],parscont), errors = error_list[[i]],
+                             model = model)
       
     
     } else if (model %in% c("EP_F_RNplus","EP_F_RNminus")){
       
-      out[[i]] <- ep_f_routine(precision = precision, parscont = parscont, errors = error_list[[i]], set_sizes = set_sizes, sz = i, model = model)
+      out[[i]] <- ep_f_routine(precision = precision, parscont = parscont, errors = error_list[[i]], 
+                               set_sizes = set_sizes, sz = i, model = model)
       
       
-    } else if (model %in% c("EP_P_RNplus")) {
+    } else if (model %in% c("EP_P_RNplus","EP_P_RNminus")) {
       
       out[[i]] <- ep_p_routine(precision = precision, parscont = parscont, weights = poissW, errors = error_list[[i]],
-                               set_sizes = set_sizes, sz = i)
+                               set_sizes = set_sizes, sz = i, model = model)
       
-    } else if (model %in% c("EP_U_RNplus")) {
+    } else if (model %in% c("EP_U_RNplus","EP_U_RNminus")) {
       
       out[[i]] <- ep_u_routine(precision = precision, parscont = parscont, errors = error_list[[i]],
-                               set_sizes = set_sizes, sz = i)
+                               set_sizes = set_sizes, sz = i, model = model)
       
     } else if (model %in% c("SA_RNplus")){
       
@@ -223,22 +197,26 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
       
     } else if (model %in% c("SA_F_RNplus","SA_F_RNminus")){
       
-      out[[i]] <- sa_f_routine(pars = c(precision,parscont), errors = error_list[[i]], set_sizes = set_sizes, sz = i, model = model)
+      out[[i]] <- sa_f_routine(pars = c(precision,parscont), errors = error_list[[i]], 
+                               set_sizes = set_sizes, sz = i, model = model)
       
       
-    } else if (model %in% c("SA_U_RNplus")){
+    } else if (model %in% c("SA_U_RNplus","SA_U_RNminus")){
       
-      out[[i]] <- sa_u_routine(pars = c(precision,parscont), errors = error_list[[i]], set_sizes = set_sizes, sz = i)
+      out[[i]] <- sa_u_routine(pars = c(precision,parscont), errors = error_list[[i]], 
+                               set_sizes = set_sizes, sz = i, model = model)
       
       
-    } else if (model %in% c("SA_P_RNplus")){
+    } else if (model %in% c("SA_P_RNplus","SA_P_RNminus")){
       
-      out[[i]] <- sa_p_routine(pars = c(precision,parscont), errors = error_list[[i]], weights = poissW, set_sizes = set_sizes, sz = i)
+      out[[i]] <- sa_p_routine(pars = c(precision,parscont), errors = error_list[[i]], 
+                               weights = poissW, set_sizes = set_sizes, sz = i, model = model)
       
       
     } else  if (model %in% c("MK_RNplus","MK_RNminus","J_RNplus","J_RNminus")){
       
-      out[[i]] <- vp_routine(precision = precision[i], parscont = parscont, errors = error_list[[i]], model = model)
+      out[[i]] <- vp_routine(precision = precision[i], parscont = parscont, errors = error_list[[i]],
+                             model = model)
       
     }
     
@@ -295,9 +273,28 @@ rnminus_integration <- function(pars, errors){
   return(out)
 }
 
-ep_routine <- function(pars,errors){
+uniformweights <- function(set_sizes, sz, parsK){
+
+  ## calculate proportion of real part of K from total K
+  unifw_real <- (parsK - floor(parsK)) / parsK
+  ## calculate weight for integer K values from 0 to floor(K)
+  unifw_int <- rep((1 - unifw_real)/ceiling(parsK), ceiling(parsK))
+  ## weights for 0:ceiling(K)
+  unifw_all <- c(unifw_int, unifw_real)
+  ## restrict weights to current set_size and give remainder to last set_size
+  unifw <- unifw_all[1:min(ceiling(parsK)+1,set_sizes[[sz]]+1)]
+  unifw[length(unifw)] <- 1-sum(unifw[1:(length(unifw)-1)])
+  return(unifw)
+}
+
+ep_routine <- function(pars,errors, model){
+
   
-  out <- rnplus_integration(pars,errors)
+  modeltype <- regmatches(model, regexpr("[^_]+$", model))
+  coreFunction <- paste0(tolower(modeltype),"_integration")
+  
+  
+  out <- match.fun(coreFunction)(pars,errors)
   
   if (any(out == 0) | any(!is.finite(out))){
     
@@ -336,7 +333,11 @@ ep_f_routine <- function(precision, parscont, errors, set_sizes, sz, model){
   }
   
 }
-ep_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz){
+ep_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz, model){
+  
+  
+  modeltype <- regmatches(model, regexpr("[^_]+$", model))
+  coreFunction <- paste0(tolower(modeltype),"_integration")
   
   out <- vector("numeric", length(errors))
   
@@ -350,9 +351,9 @@ ep_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz){
     if (K < set_sizes[[sz]]){
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[[j]],parscont[c(1)])
+      pars <- c(precision[[j]],parscont)
       
-      err <- rnplus_integration(pars,errors)
+      err <- match.fun(coreFunction)(pars,errors)
       
       pEncode <- K/set_sizes[[sz]]
       out <- out +  weights[[j]]*(pEncode*err + (1-pEncode)*one_two_pi)
@@ -360,9 +361,9 @@ ep_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz){
     } else {
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[[(set_sizes[[sz]] + 1)]],parscont[c(1)])
+      pars <- c(precision[[(set_sizes[[sz]] + 1)]],parscont)
       
-      err <- rnplus_integration(pars,errors)
+      err <- match.fun(coreFunction)(pars,errors)
       
       out <- out +  weights[[j]]*err
     }
@@ -379,17 +380,14 @@ ep_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz){
   }
   
 }
-ep_u_routine <- function(precision, parscont, errors, set_sizes, sz) {
+ep_u_routine <- function(precision, parscont, errors, set_sizes, sz, model) {
   
-  ## calculate proportion of real part of K from total K
-  unifw_real <- (parscont[2] - floor(parscont[2])) / parscont[2] 
-  ## calculate weight for integer K values from 0 to floor(K)
-  unifw_int <- rep((1 - unifw_real)/ceiling(parscont[2]), ceiling(parscont[2]))
-  ## weights for 0:ceiling(K)
-  unifw_all <- c(unifw_int, unifw_real)
-  ## restrict weights to current set_size and give remainder to last set_size
-  unifw <- unifw_all[1:min(ceiling(parscont[2])+1,set_sizes[[sz]]+1)]
-  unifw[length(unifw)] <- 1-sum(unifw[1:(length(unifw)-1)])
+  
+  modeltype <- regmatches(model, regexpr("[^_]+$", model))
+  coreFunction <- paste0(tolower(modeltype),"_integration")
+  
+  
+  unifw <- uniformweights(set_sizes = set_sizes, sz = sz, parsK = parscont[length(parscont)])
 
   
   out <- vector("numeric", length(errors))
@@ -405,9 +403,14 @@ ep_u_routine <- function(precision, parscont, errors, set_sizes, sz) {
     if (K < set_sizes[[sz]]){
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[[j]],parscont[c(1)])
       
-      err <- rnplus_integration(pars,errors)
+      if(grepl("RNplus",model)){
+        pars <- c(precision[[j]],parscont[c(1)])
+      } else {
+        pars <- precision[[j]]
+      }
+      
+      err <- match.fun(coreFunction)(pars,errors)
       
       pEncode <- K/set_sizes[[sz]]
       out <- out +  unifw[[j]]*(pEncode*err + (1-pEncode)*one_two_pi)
@@ -415,9 +418,14 @@ ep_u_routine <- function(precision, parscont, errors, set_sizes, sz) {
     } else {
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[[(set_sizes[[sz]] +1)]],parscont[c(1)])
       
-      err <- rnplus_integration(pars,errors)
+      if(grepl("RNplus",model)){
+        pars <- c(precision[[(set_sizes[[sz]] +1)]],parscont[c(1)])
+      } else {
+        pars <- precision[[(set_sizes[[sz]] +1)]]
+      }
+      
+      err <- match.fun(coreFunction)(pars,errors)
       
       out <- out +  unifw[[j]]*err
     }
@@ -462,55 +470,13 @@ vp_routine <- function(precision, parscont, errors, model) {
   
   
 }
-vp_f_routine <- function(precision, parscont, errors, set_sizes, sz, model) {
-  
-  modeltype <- regmatches(model, regexpr("_[^_]+$", model))
-  coreFunction <- paste0("cint_fun_MK",modeltype)
-  
-  pEncode <-  min(parscont[length(parscont)],set_sizes[[sz]]) / set_sizes[[sz]]
-  pars <- c(precision[[pmin(sz, length(precision))]],parscont[c(seq(1,length(parscont)-1,1))])
-  
-  out <- vector("numeric", length(errors))
-  err<- vector("numeric",length(errors))
-  
-  
-  for (i in seq_along(err)) {
-    err[i] <- vp_integration(error = errors[i], pars = pars, 
-                             coreFunction = coreFunction)
-  }
-  
-  
-  out <- pEncode*err + (1-pEncode)*one_two_pi
-
-  
-  if (any(out == 0) | any(!is.finite(out))){
-    
-    return(1e6)
-    
-  } else {
-    return(-sum(log(out)))
-  }
-  
-  
-}
 vp_u_routine <- function(precision, parscont, errors, set_sizes, sz, model) {
   
   modeltype <- regmatches(model, regexpr("_[^_]+$", model))
   coreFunction <- paste0("cint_fun_MK",modeltype)
  
-  ## calculate proportion of real part of K from total K
-  unifw_real <- (parscont[length(parscont)] - floor(parscont[length(parscont)])) / 
-    parscont[length(parscont)] 
-  ## calculate weight for integer K values from 0 to floor(K)
-  unifw_int <- rep((1 - unifw_real)/ceiling(parscont[length(parscont)]), ceiling(parscont[length(parscont)]))
-  ## weights for 0:ceiling(K)
-  unifw_all <- c(unifw_int, unifw_real)
-  ## restrict weights to current set_size and give remainder to last set_size
-  unifw <- unifw_all[1:min(ceiling(parscont[length(parscont)])+1,set_sizes[[sz]]+1)]
-  unifw[length(unifw)] <- 1-sum(unifw[1:(length(unifw)-1)])
-
-  
-  
+  unifw <- uniformweights(set_sizes = set_sizes, sz = sz, parsK = parscont[length(parscont)])
+ 
   out <- vector("numeric", length(errors))
   for (j in c(1:length(unifw))){ # K = 0 to K = min(floor(Kpar),setsizes[[sz]]) integer items
     
@@ -520,7 +486,7 @@ vp_u_routine <- function(precision, parscont, errors, set_sizes, sz, model) {
     if (K < set_sizes[[sz]]){
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[[j]],parscont[c(seq(1,length(parscont)-1,1))])
+      pars <- c(precision[[j]],parscont[c(1:(length(parscont)-1))])
       
       for (i in seq_along(err)) {
         
@@ -534,7 +500,7 @@ vp_u_routine <- function(precision, parscont, errors, set_sizes, sz, model) {
     } else {
       
       err<- vector("numeric",length(errors))
-      pars <- c(precision[[(set_sizes[[sz]] +1)]],parscont[c(seq(1,length(parscont)-1,1))])
+      pars <- c(precision[[(set_sizes[[sz]] +1)]],parscont[c(1:(length(parscont)-1))])
       
       for (i in seq_along(err)) {
         
@@ -612,19 +578,51 @@ vp_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz, mo
   
   
 }
-vp_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz) {
+vp_f_routine <- function(precision, parscont, errors, set_sizes, sz, model) {
   
-  coreFunction <- "cint_fun_MK_RNplus"
+  modeltype <- regmatches(model, regexpr("_[^_]+$", model))
+  coreFunction <- paste0("cint_fun_MK",modeltype)
+  
+  pEncode <-  min(parscont[length(parscont)],set_sizes[[sz]]) / set_sizes[[sz]]
+  pars <- c(precision[[pmin(sz, length(precision))]],parscont[c(seq(1,length(parscont)-1,1))])
   
   out <- vector("numeric", length(errors))
-  pEncode <-  min(parscont[3],set_sizes[[sz]]) / set_sizes[[sz]]
+  err<- vector("numeric",length(errors))
+  
+  
+  for (i in seq_along(err)) {
+    err[i] <- vp_integration(error = errors[i], pars = pars, 
+                             coreFunction = coreFunction)
+  }
+  
+  
+  out <- pEncode*err + (1-pEncode)*one_two_pi
+  
+  
+  if (any(out == 0) | any(!is.finite(out))){
+    
+    return(1e6)
+    
+  } else {
+    return(-sum(log(out)))
+  }
+  
+  
+}
+vp_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz, model) {
+  
+  modeltype <- regmatches(model, regexpr("_[^_]+$", model))
+  coreFunction <- paste0("cint_fun_MK",modeltype)
+  
+  out <- vector("numeric", length(errors))
+  pEncode <-  min(parscont[length(parscont)],set_sizes[[sz]]) / set_sizes[[sz]]
   
   if (pEncode < 1){
     
     for (FMind in seq_along(weights)){
       
       err<- vector("numeric",length(errors))
-      pars <- c(tail(precision,2)[[FMind]],parscont[c(1,2)])
+      pars <- c(tail(precision,2)[[FMind]],parscont[c(1:(length(parscont) - 1))])
       
       for (i in seq_along(err)) {
         err[i] <- vp_integration(error = errors[i], pars = pars, 
@@ -639,7 +637,7 @@ vp_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz) {
     
     
     err<- vector("numeric",length(errors))
-    pars <- c(precision[[sz]],parscont[c(1,2)])
+    pars <- c(precision[[sz]],parscont[c(1:(length(parscont) - 1))])
     
     for (i in seq_along(err)) {
       err[i] <- vp_integration(error = errors[i], pars = pars, 
@@ -660,7 +658,6 @@ vp_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz) {
   
   
 }
-
 
 sa_routine <- function(pars, errors){
   
@@ -719,17 +716,13 @@ sa_f_routine <- function(pars, errors, set_sizes, sz, model){
   }
 
 }
-sa_u_routine <- function(pars, errors, set_sizes, sz){
+sa_u_routine <- function(pars, errors, set_sizes, sz, model){
   
-  ## calculate proportion of real part of K from total K
-  unifw_real <- (pars[3] - floor(pars[3])) / pars[3] 
-  ## calculate weight for integer K values from 0 to floor(K)
-  unifw_int <- rep((1 - unifw_real)/ceiling(pars[3]), ceiling(pars[3]))
-  ## weights for 0:ceiling(K)
-  unifw_all <- c(unifw_int, unifw_real)
-  ## restrict weights to current set_size and give remainder to last set_size
-  unifw <- unifw_all[1:min(ceiling(pars[3])+1,set_sizes[[sz]]+1)]
-  unifw[length(unifw)] <- 1-sum(unifw[1:(length(unifw)-1)])
+  modeltype <- regmatches(model, regexpr("[^_]+$", model))
+  coreFunction <- paste0(tolower(modeltype),"_integration")
+  
+  
+  unifw <- uniformweights(set_sizes = set_sizes, sz = sz, parsK = pars[length(pars)])
   
   
   out <- vector("numeric", length(errors))
@@ -747,9 +740,9 @@ sa_u_routine <- function(pars, errors, set_sizes, sz){
     
   if (pEncode <= 1){
     
-    pars_lim <- pars[c(1,2)]
+    pars_lim <- pars[c(1:(length(pars)-1))]
     
-    err <- rnplus_integration(pars = pars_lim,errors)
+    err <- match.fun(coreFunction)(pars = pars_lim,errors)
     
     out <- out + unifw[[j]] * (pEncode*err + (1-pEncode)*one_two_pi)
     
@@ -759,8 +752,16 @@ sa_u_routine <- function(pars, errors, set_sizes, sz){
     kappa_low <- pars[1] * floor(pEncode) # precision for 1 item times the increase in precision given by K exceeding Sz
     kappa_high <- pars[1] * (floor(pEncode)+1) # as above but extra precision if single quanta of precision don't neatly map onto items
     
-    err_high <- rnplus_integration(pars = c(kappa_high,pars[2]),errors)
-    err_low <- rnplus_integration(pars = c(kappa_low,pars[2]),errors)
+    if (grepl("RNplus",model)) {
+      pars_high <- c(kappa_high,pars[2])
+      pars_low <- c(kappa_low,pars[2])
+    } else {
+      pars_high <- kappa_high
+      pars_low <- kappa_low
+    }
+    
+    err_high <- match.fun(coreFunction)(pars = pars_high, errors)
+    err_low <- match.fun(coreFunction)(pars = pars_low, errors)
     
     out <- out + unifw[[j]] * (phigh * err_high + (1 - phigh) * err_low)
   }
@@ -776,9 +777,10 @@ sa_u_routine <- function(pars, errors, set_sizes, sz){
   }
   
 }
-sa_p_routine <- function(pars, errors, weights, set_sizes, sz){
+sa_p_routine <- function(pars, errors, weights, set_sizes, sz, model){
   
-
+  modeltype <- regmatches(model, regexpr("[^_]+$", model))
+  coreFunction <- paste0(tolower(modeltype),"_integration")
   
   out <- vector("numeric", length(errors))
   
@@ -794,10 +796,8 @@ sa_p_routine <- function(pars, errors, weights, set_sizes, sz){
     pEncode <-  K / Sz
     
     if (pEncode <= 1){
-      
-      pars_lim <- pars[c(1,2)]
-      
-      err <- rnplus_integration(pars = pars_lim,errors)
+ 
+      err <- match.fun(coreFunction)(pars = pars, errors)
       
       out <- out + weights[[j]] * (pEncode*err + (1-pEncode)*one_two_pi)
       
@@ -807,8 +807,16 @@ sa_p_routine <- function(pars, errors, weights, set_sizes, sz){
       kappa_low <- pars[1] * floor(pEncode) # precision for 1 item times the increase in precision given by K exceeding Sz
       kappa_high <- pars[1] * (floor(pEncode)+1) # as above but extra precision if single quanta of precision don't neatly map onto items
       
-      err_high <- rnplus_integration(pars = c(kappa_high,pars[2]),errors)
-      err_low <- rnplus_integration(pars = c(kappa_low,pars[2]),errors)
+      if (grepl("RNplus",model)) {
+        pars_high <- c(kappa_high,pars[2])
+        pars_low <- c(kappa_low,pars[2])
+      } else {
+        pars_high <- kappa_high
+        pars_low <- kappa_low
+      }
+      
+      err_high <- match.fun(coreFunction)(pars = pars_high, errors)
+      err_low <- match.fun(coreFunction)(pars = pars_low, errors)
       
       out <- out + weights[[j]] * (phigh * err_high + (1 - phigh) * err_low)
     }

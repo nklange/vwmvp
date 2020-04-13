@@ -66,14 +66,17 @@ get_start_vp <- function(model) {
       kappa_r = runif(1, 30, 60),
       K = runif(1,0,10)
     )
-    #  }
-  } else if (model %in% c("EP_F_RNminus")) {
+  }  else if (model %in% c("EP_F_RNminus","EP_P_RNminus","EP_U_RNminus","EP_FM_RNminus")) {
     start <- c(
       mkappa1 = runif(1, 50, 100),
       alpha = runif(1, 0.5, 2),
       K = runif(1,0,10)
     )
-    #  }
+  } else if (model %in% c("EP_RNminus")) {
+    start <- c(
+      mkappa1 = runif(1, 50, 100),
+      alpha = runif(1, 0.5, 2)
+    )
   } else if (model %in% c("SA_F_RNplus","SA_P_RNplus","SA_U_RNplus","SA_FM_RNplus")) {
     start <- c(
       mkappa1 = runif(1, 50, 100),
@@ -81,7 +84,7 @@ get_start_vp <- function(model) {
       K = runif(1,0,10)
     )
     #  }
-  } else if (model %in% c("SA_F_RNminus")) {
+  } else if (model %in% c("SA_F_RNminus","SA_P_RNminus","SA_U_RNminus")) {
     start <- c(
       mkappa1 = runif(1, 50, 100),
       K = runif(1,0,10)

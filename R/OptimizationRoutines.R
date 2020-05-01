@@ -36,12 +36,11 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     precision <- pars[1]/(K_range^pars[2])
     parscont <- c(pars[3:length(pars)])
     
-  } else if (model %in% c("MK_FM_RNplus","MK_FM_RNminus")){
+  } else if (model %in% c("MK_FM_RNplus","MK_FM_RNminus","MK_FM2_RNplus","MK_FM2_RNminus")){
 
     #final value in K_range is integer ceiling(K) for precision(ceiling(K),mKappa,alpha) for cases of K < SetSize
     #second to final value in K_range is integer floor(K) for precision(floor(K),mKappa,alpha) for cases of K < SetSize
     # remaining values are set sizes smaller K: for K >= SetSize for precision(SetSize,mKappa,alpha)
-    
     
     K_range <- c(set_sizes[set_sizes <= pmin(max(set_sizes), pars[length(pars)])], 
                  floor(pars[length(pars)]), ceiling(pars[length(pars)]))
@@ -89,7 +88,19 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     precision <- pars[1]/(K_range^pars[2])
     parscont <- c(pars[3:length(pars)])
     
-  } else if (model %in% c("EP_P_RNplus","EP_P_RNminus")){
+  } else if (model %in% c("EP_FM_RNplus","EP_FM_RNminus")){
+    
+    K_range <- c(set_sizes[set_sizes <= pmin(max(set_sizes), pars[length(pars)])], 
+                 floor(pars[length(pars)]), ceiling(pars[length(pars)]))
+    
+    precision <- pars[1]/(K_range^pars[2])
+    parscont <- c(pars[3:length(pars)])
+    
+    # mixture weights for floor(K),ceiling(K) from real part of non-integer K
+    realK <- pars[length(pars)] - floor(pars[length(pars)])
+    fmW <- c(1-realK,realK)
+    
+  }else if (model %in% c("EP_P_RNplus","EP_P_RNminus")){
 
   
     K_range <- c(0:max(set_sizes))
@@ -120,7 +131,7 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     precision <- pars[1]
     parscont <- c(pars[2:length(pars)])
     
-  }  else if (model %in% c("SA_P_RNplus","SA_P_RNminus")){
+  } else if (model %in% c("SA_P_RNplus","SA_P_RNminus")){
     
     K_range <- c(0:max(set_sizes))
     poissW <- dpois(c(0:(max(K_range)-1)), pars[length(pars)], log = FALSE)
@@ -158,6 +169,11 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
       out[[i]] <- vp_fm_routine(precision = precision, parscont = parscont, weights = fmW, errors = error_list[[i]],
                                  set_sizes = set_sizes, sz = i, model = model)
       
+    } else if (model %in% c("MK_FM2_RNplus","MK_FM2_RNminus")){
+      
+      out[[i]] <- vp_fm2_routine(precision = precision, parscont = parscont, weights = fmW, errors = error_list[[i]],
+                                set_sizes = set_sizes, sz = i, model = model)
+      
     } else if (model %in% c("MK_P_RNplus","MK_P_RNminus")) {
       
       out[[i]] <- vp_p_routine(precision = precision, parscont = parscont, weights = poissW, errors = error_list[[i]],
@@ -180,6 +196,11 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
                                set_sizes = set_sizes, sz = i, model = model)
       
       
+    } else if (model %in% c("EP_FM_RNplus","EP_FM_RNminus")){
+      
+      out[[i]] <- ep_fm_routine(precision = precision, parscont = parscont, weights = fmW, errors = error_list[[i]],
+                                set_sizes = set_sizes, sz = i, model = model)
+      
     } else if (model %in% c("EP_P_RNplus","EP_P_RNminus")) {
       
       out[[i]] <- ep_p_routine(precision = precision, parscont = parscont, weights = poissW, errors = error_list[[i]],
@@ -201,7 +222,7 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
                                set_sizes = set_sizes, sz = i, model = model)
       
       
-    } else if (model %in% c("SA_U_RNplus","SA_U_RNminus")){
+    }  else if (model %in% c("SA_U_RNplus","SA_U_RNminus")){
       
       out[[i]] <- sa_u_routine(pars = c(precision,parscont), errors = error_list[[i]], 
                                set_sizes = set_sizes, sz = i, model = model)
@@ -323,6 +344,52 @@ ep_f_routine <- function(precision, parscont, errors, set_sizes, sz, model){
   err <-match.fun(coreFunction)(pars,errors)
   
   out <- pEncode*err + (1-pEncode)*one_two_pi
+  
+  if (any(out == 0) | any(!is.finite(out))){
+    
+    return(1e6)
+    
+  } else {
+    return(-sum(log(out)))
+  }
+  
+}
+ep_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz, model){
+
+  modeltype <- regmatches(model, regexpr("[^_]+$", model))
+  coreFunction <- paste0(tolower(modeltype),"_integration")
+  
+  out <- vector("numeric", length(errors))
+  pEncode <-  min(parscont[length(parscont)],set_sizes[[sz]]) / set_sizes[[sz]]
+  floorceilK <- c(floor(parscont[length(parscont)]),ceil(parscont[length(parscont)]))
+  
+  
+  if (pEncode < 1){
+    
+    for (FMind in seq_along(weights)){
+      
+      err<- vector("numeric",length(errors))
+     
+      pars <- c(tail(precision,2)[[FMind]],parscont[c(1:(length(parscont) - 1))])
+      
+      err <- match.fun(coreFunction)(pars,errors)
+        
+      out <- out + weights[[FMind]] * (floorceilK[[FMind]]*err + (1-floorceilK[[FMind]])*one_two_pi)
+    }
+    
+    
+  } else {
+    
+    
+    err<- vector("numeric",length(errors))
+    pars <- c(precision[[sz]],parscont[c(1:(length(parscont) - 1))])
+    
+    err <- match.fun(coreFunction)(pars,errors)
+
+    out <- err
+    
+  }
+
   
   if (any(out == 0) | any(!is.finite(out))){
     
@@ -615,6 +682,60 @@ vp_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz, m
   coreFunction <- paste0("cint_fun_MK",modeltype)
   
   out <- vector("numeric", length(errors))
+  
+  Ss <- set_sizes[[sz]]
+  pEncode <-  min(parscont[length(parscont)],Ss) / Ss
+  condpEncode<- c(floor(parscont[length(parscont)])/Ss,ceiling(parscont[length(parscont)])/Ss)
+  
+  
+  if (pEncode < 1){
+    
+    for (FMind in seq_along(weights)){
+      
+      err<- vector("numeric",length(errors))
+      pars <- c(tail(precision,2)[[FMind]],parscont[c(1:(length(parscont) - 1))])
+      
+      for (i in seq_along(err)) {
+        err[i] <- vp_integration(error = errors[i], pars = pars, 
+                                 coreFunction = coreFunction)
+        
+      }
+      out <- out + weights[[FMind]] * (condpEncode[[FMind]]*err + (1-condpEncode[[FMind]])*one_two_pi)
+    }
+    
+    
+  } else {
+    
+    
+    err<- vector("numeric",length(errors))
+    pars <- c(precision[[sz]],parscont[c(1:(length(parscont) - 1))])
+    
+    for (i in seq_along(err)) {
+      err[i] <- vp_integration(error = errors[i], pars = pars, 
+                               coreFunction = coreFunction)
+      
+    }
+    out <- err
+    
+  }
+  
+  if (any(out == 0) | any(!is.finite(out))){
+    
+    return(1e6)
+    
+  } else {
+    return(-sum(log(out)))
+  }
+  
+  
+}
+vp_fm2_routine <- function(precision, parscont, weights, errors, set_sizes, sz, model) {
+  
+  modeltype <- regmatches(model, regexpr("_[^_]+$", model))
+  coreFunction <- paste0("cint_fun_MK",modeltype)
+  
+  out <- vector("numeric", length(errors))
+  outweighed <- out
   pEncode <-  min(parscont[length(parscont)],set_sizes[[sz]]) / set_sizes[[sz]]
   
   if (pEncode < 1){
@@ -629,9 +750,10 @@ vp_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz, m
                                  coreFunction = coreFunction)
         
       }
-      out <- out + weights[[FMind]] * (pEncode*err + (1-pEncode)*one_two_pi)
+      outweighed <- outweighed + weights[[FMind]] * err
     }
     
+    out <- pEncode * outweighed + (1-pEncode)*one_two_pi
     
   } else {
     

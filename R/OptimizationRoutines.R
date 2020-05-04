@@ -52,7 +52,7 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     realK <- pars[length(pars)] - floor(pars[length(pars)])
     fmW <- c(1-realK,realK)
     
-  } else if (model %in% c("MK_P_RNplus","MK_P_RNminus")){
+  } else if (model %in% c("MK_P_RNplus","MK_P_RNminus","MK_P2_RNplus","MK_P2_RNminus")){
 
     
     K_range <- c(0:max(set_sizes))
@@ -60,7 +60,7 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     poissW <- c(poissW,1-sum(poissW))
     
     precision <- pars[1]/(K_range^pars[2])
-    parscont <- c(pars[3:(length(pars) - 1)])
+    parscont <- c(pars[3:length(pars)])
     
   } else if (model %in% c("MK_U_RNplus","MK_U_RNminus")) {
     
@@ -175,9 +175,18 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
                                 set_sizes = set_sizes, sz = i, model = model)
       
     } else if (model %in% c("MK_P_RNplus","MK_P_RNminus")) {
+
+      # put all weight for possible items beyond actual set size on the last set size
+      # awkward + 1 phrasing is because it includes the weight for K = 0
+      poissWSz <- c(poissW[c(1:set_sizes[[i]])],sum(poissW[(set_sizes[[i]] + 1):length(poissW)]))
       
-      out[[i]] <- vp_p_routine(precision = precision, parscont = parscont, weights = poissW, errors = error_list[[i]],
+      out[[i]] <- vp_p_routine(precision = precision, parscont = parscont[-length(parscont)], weights = poissWSz, errors = error_list[[i]],
                                  set_sizes = set_sizes, sz = i, model = model)
+      
+    } else if (model %in% c("MK_P2_RNplus","MK_P2_RNminus")) {
+      
+      out[[i]] <- vp_p2_routine(precision = precision, parscont = parscont, weights = poissW, errors = error_list[[i]],
+                               set_sizes = set_sizes, sz = i, model = model)
       
     } else if (model %in% c("MK_U_RNplus","MK_U_RNminus")) {
       
@@ -361,7 +370,7 @@ ep_fm_routine <- function(precision, parscont, weights, errors, set_sizes, sz, m
   
   out <- vector("numeric", length(errors))
   pEncode <-  min(parscont[length(parscont)],set_sizes[[sz]]) / set_sizes[[sz]]
-  floorceilK <- c(floor(parscont[length(parscont)]),ceil(parscont[length(parscont)]))
+  floorceilK <- c(floor(parscont[length(parscont)]),ceiling(parscont[length(parscont)]))
   
   
   if (pEncode < 1){
@@ -598,10 +607,13 @@ vp_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz, mo
   modeltype <- regmatches(model, regexpr("_[^_]+$", model))
   coreFunction <- paste0("cint_fun_MK",modeltype)
   
-  out <- vector("numeric", length(errors))
-  for (j in c(1:length(weights))){ # K = 0 to K = max(setsize) integer items
+  #out <- vector("numeric", length(errors))
+
+  out <- rep(weights[[1]] * one_two_pi,length(errors)) # for K = 0
+  
+  for (j in c(2:length(weights))){ # K = 1 to K = Sz integer items
     
-    K <- j - 1 #to start from Kitems = 0
+    K <- j - 1 #to start from Kitems = 1
     
     
     if (K < set_sizes[[sz]]){
@@ -618,7 +630,7 @@ vp_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz, mo
       pEncode <- K/set_sizes[[sz]]
       out <- out +  weights[[j]]*(pEncode*err + (1-pEncode)*one_two_pi)
       
-    } else {
+    } else { # when K = Sz, ie. the last element in the weights 
       
       err<- vector("numeric",length(errors))
       pars <- c(precision[[(set_sizes[[sz]] + 1)]],parscont)
@@ -634,6 +646,68 @@ vp_p_routine <- function(precision, parscont, weights, errors, set_sizes, sz, mo
     
     
   }
+  
+  if (any(out == 0) | any(!is.finite(out))){
+    
+    return(1e6)
+    
+  } else {
+    return(-sum(log(out)))
+  }
+  
+  
+}
+
+vp_p2_routine <- function(precision, parscont, weights, errors, set_sizes, sz, model) {
+  
+  
+  modeltype <- regmatches(model, regexpr("_[^_]+$", model))
+  coreFunction <- paste0("cint_fun_MK",modeltype)
+  
+  Ss <- set_sizes[[sz]]
+  pEncode <- parscont[length(parscont)]/Ss
+  
+  out <- vector("numeric", length(errors))
+  
+  # Make VP(Mixture across Poisson)
+  outweighed <- rep(weights[[1]] * one_two_pi,length(out)) # nitiale with values for K = 0, only guessing
+  
+  for (j in c(2:length(weights))){ # K = 1 to K = max(setsize) integer items
+    
+    K <- j - 1 #to start from Kitems = 1
+    
+    if (K < Ss){ #for cases where actual items remembered < Set size (precision(K))
+      
+      err<- vector("numeric",length(errors))
+      pars <- c(precision[[j]],parscont[-length(parscont)])
+      
+      for (i in seq_along(err)) {
+        
+        err[i] <- vp_integration(error = errors[i], pars = pars, 
+                                 coreFunction = coreFunction)
+      }
+      
+    } else { #for cases where actual items remembered >= set size (precision(Ss))
+      
+      err<- vector("numeric",length(errors))
+      pars <- c(precision[[(Ss + 1)]],parscont[-length(parscont)])
+      
+      for (i in seq_along(err)) {
+        
+        err[i] <- vp_integration(error = errors[i], pars = pars, 
+                                 coreFunction = coreFunction)
+      }
+      
+      
+    }
+    
+    # output vector of summed up, weighed error distribution
+    outweighed <- outweighed +  weights[[j]]*err
+    
+  }
+  
+  # create mixture of VP(Mixture) + guessing
+  out <- pEncode * outweighed + (1 - pEncode) * one_two_pi 
   
   if (any(out == 0) | any(!is.finite(out))){
     

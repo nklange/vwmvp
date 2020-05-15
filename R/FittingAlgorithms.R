@@ -92,6 +92,15 @@ fit_one_vp_nlminb <- function(data, rep, model, startpar, ...) {
     
   }
   
+  lower <- .Machine$double.eps
+  
+  if (model == "UVM") {
+    upper <- c(Inf,1)
+  } else {
+    upper <- Inf
+  }
+
+  
   for (i in seq_len(rep)) {
     #print(startpar)
     
@@ -105,7 +114,7 @@ fit_one_vp_nlminb <- function(data, rep, model, startpar, ...) {
     tmp <- tryCatch(nlminb(start, objective = ll_vp_numint, 
                            error_list = dp$datalist, set_sizes = dp$set_sizes, 
                            model = model, ..., 
-                           lower = .Machine$double.eps, upper = Inf,
+                           lower = lower, upper = upper,
                            control = list(
                              eval.max = 300, 
                              iter.max = 300, 

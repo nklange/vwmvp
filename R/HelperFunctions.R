@@ -12,6 +12,16 @@ KappafromJ <- function(J) {
   ifelse(is.na(out), J, out)
 }
 
+# Pewsey (2004)
+circkurtosis <- function(errors){ 
+  sum(cos(2*(errors - mean(errors))))/length(errors)
+}
+
+circkurtosis_std <-function(errors){
+  rbar <-  sum(cos((errors - mean(errors))))/length(errors)
+  alpha2 <- sum(cos(2*(errors - mean(errors))))/length(errors)
+  (alpha2 - rbar^4) / ((1 - rbar)^2)
+}
 
 # preprocess data -----------------------------------------------------------
 
@@ -92,7 +102,7 @@ get_start_vp <- function(model) {
       K = runif(1,0,10)
     )
     #  }
-  } else if (model == "SA_RNplus") {
+  } else if (model %in% c("SA_RNplus","VMnosetsize")) {
     start <- c(
       kappa_r = runif(1, 1, 30)
     )
@@ -119,7 +129,19 @@ get_start_vp <- function(model) {
       kuvm = runif(1, 0, 10),
       wuvm = runif(1,0, 1)
     )
+  }  else if (model == "VPnosetsize") {
+    start <- c(
+      kappa = runif(1, 1, 50),
+      tau = runif(1, 10, 40)
+    )
+  } else if (model == "VPplusnosetsize") {
+    start <- c(
+      kappa = runif(1, 100, 200),
+      tau = runif(1, 10, 40),
+      kappa_r = runif(1,10,70)
+    )
   }
+    
   return(start)
 }
 
@@ -300,11 +322,11 @@ prep_parameters <- function(pars, model, set_sizes){
     precision <- pars[1]/(K_range^pars[2])
     parscont <- c(pars[3:length(pars)])
     
-  } else if (model %in% c("SA_RNplus")){
+  } else if (model %in% c("SA_RNplus","VMnosetsize")){
     
     parscont <- pars[1]
     
-  } else if (model %in% c("SA_F_RNplus","SA_U_RNplus","SA_F_RNminus","SA_U_RNminus")){
+  } else if (model %in% c("SA_F_RNplus","SA_U_RNplus","SA_F_RNminus","SA_U_RNminus","VPnosetsize")){
     
     precision <- pars[1]
     parscont <- c(pars[2:length(pars)])
@@ -334,6 +356,16 @@ prep_parameters <- function(pars, model, set_sizes){
     parscont <- pars
   }
   
+  else if (model == "VPnosetsize"){
+    precision <- pars[1]
+    parscont <- pars[2]
+    
+  }
+  else if (model == "VPplusnosetsize"){
+    precision <- pars[1]
+    parscont <- c(pars[2],pars[3])
+    
+  }
   return(list(precision,parscont,weights))
   
 }

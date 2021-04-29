@@ -9,3 +9,5 @@ Description: Variants of variable precision models for Visual Working memory dat
 Imports: Rcpp (>= 1.0.1), magrittr, tibble, dplyr, tidyr, circular, GA
 LinkingTo: Rcpp
 RoxygenNote: 6.1.1
+NeedsCompilation: yes
+Packaged: 2020-05-14 11:11:08 UTC; Nicholas

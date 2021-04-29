@@ -1,6 +1,6 @@
 
 
-FitVP <- function(data, model, method = "numint", rep = rep, seqrun = 5, nsim = 1500, startpar = NULL) {
+FitVP <- function(data, model, method = "numint", rep = rep, seqrun = 5, nsim = 1500, startpar = NULL,SS = FALSE) {
   
   
   res <- NULL
@@ -24,7 +24,7 @@ FitVP <- function(data, model, method = "numint", rep = rep, seqrun = 5, nsim = 
     
   } else if (method == "numint"){
     
-    res <- fit_one_vp_nlminb(data = data, rep = rep, model = model, startpar = startpar)
+    res <- fit_one_vp_nlminb(data = data, rep = rep, model = model, startpar = startpar, SS = SS)
     
   }
   
@@ -71,7 +71,7 @@ fit_one_vp_ga <- function(data = data, rep = rep, model = model, lower = lower, 
 }
 
 # Numerical Integration NLMINB ----------------------------------------------------------
-fit_one_vp_nlminb <- function(data, rep, model, startpar, ...) {
+fit_one_vp_nlminb <- function(data, rep, model, startpar, SS, ...) {
   
   dp <- prep_data(data)
   out_list <- vector("list", rep)
@@ -108,7 +108,7 @@ fit_one_vp_nlminb <- function(data, rep, model, startpar, ...) {
       slice(i) %>% 
       unlist()
     
-    
+  
     tic <- Sys.time()
     
     tmp <- tryCatch(nlminb(start, objective = ll_vp_numint, 
@@ -153,6 +153,7 @@ fit_one_vp_nlminb <- function(data, rep, model, startpar, ...) {
           setNames(paste0("s_",sort(names(get_start_vp(model)))))
       )
     } 
+    
   }
   dplyr::bind_rows(out_list)
 }

@@ -16,14 +16,20 @@ NumericVector cint_fun_MK_RNplus(
   
   for (i = 0; i < lx; i++) {
     
-    kappa = x[i];
+    kappa = x[i]; 
+   
     
-    kc = sqrt(pow(pars[2], 2) + pow(kappa, 2) + 2 * pars[2]*kappa*cos(radian));
     // Rcout << pow(pars[3], 2) << std::endl;
     // Rcout << kc << std::endl;
     
     out[i] = R::dgamma(kappa, pars[0]/pars[1], pars[1], 0);
-      
+    // for sample size distribution thing, change kappa between these steps
+    // pars[0] is mean precision, in sample size c2 not affected by set size yet
+    // need to hand set sizes all the way through
+    
+    
+    kc = sqrt(pow(pars[2], 2) + pow(kappa, 2) + 2 * pars[2]*kappa*cos(radian));
+    
       if (out[i] != 0) {
         out[i] = out[i] * 
       ((R::bessel_i(kc,0,2) / 

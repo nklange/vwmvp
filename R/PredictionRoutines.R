@@ -105,7 +105,7 @@ predict_data <- function(data, model, pars){
       out <- ep_u2_routine(precision = precision, parscont = parscont, errors = error_list[[i]],
                                 set_sizes = set_sizes, sz = i, model = model, predictOrLL = "predict")
       
-    } else if (model %in% c("SA_RNplus")){
+    } else if (model %in% c("SA_RNplus","VMnosetsize")){
       
       out <- sa_routine(pars = c(parscont), errors = error_list[[i]], predictOrLL = "predict")
       
@@ -136,8 +136,16 @@ predict_data <- function(data, model, pars){
     } else if (model %in% c("UVM")){
       
       out <- uvm_routine(pars = parscont, errors = error_list[[i]], model = model, predictOrLL = "predict")
-    }
-    
+      
+    } else if (model %in% c("VPnosetsize")) {
+      
+      out <- vpnosetsize_routine(pars = c(precision,parscont), errors = error_list[[i]],
+                                      model = model, predictOrLL = "predict")
+    } else if (model %in% c("VPplusnosetsize")) {
+      
+      out <- vpplusnosetsize_routine(pars = c(precision,parscont), errors = error_list[[i]],
+                                 model = model, predictOrLL = "predict")
+    } 
     
     out_list[[i]] <- bind_cols(tibble::tibble(prediction = out),
                 tibble::tibble(data = as.numeric(error_list[[i]])),
@@ -183,7 +191,6 @@ generate_VP_data <- function(trials, set_sizes, model, par){
     Kpar <- par[[4]]
   } 
   
-  
   for (setsizeInd in seq_along(set_sizes)){
     trialsSs <- trials[[setsizeInd]]
     
@@ -200,7 +207,7 @@ generate_VP_data <- function(trials, set_sizes, model, par){
       
     } else if (model %in% c("MK_U_RNminus","MK_U_RNplus")){
       
-      KTrial <- round(runif(trialsSs,min = 0, max = Kpar))
+      KTrial <- round(runif(trialsSs,min = 0, max = 2*Kpar))
       
     } else {
       
@@ -218,10 +225,26 @@ generate_VP_data <- function(trials, set_sizes, model, par){
     for (i in seq_along(StimuliTrial)){
       
       kappabar <-  meanprec/(min(KTrial[i],Ss)^(alpha))
-
       
-      memory <- ifelse(KTrial[i] > Ss,TRUE,ifelse(runif(1) < KTrial[i]/Ss,TRUE,FALSE))
+      
+      if(KTrial[i] > 0) {
+     
+      allitems <- sample(Ss,Ss,replace=F) # list all items of a set size where 1 is always the target
+      encoded <- allitems[1:min(KTrial[i],Ss)] # assume the first K items (max Setsize) were encoded
+      
+      # only base response on memory if K > set size
+      # or, when K < Ss, 1 (target) was encoded
+      # otherwise base response on guess
+      memory <- ifelse(KTrial[i] > Ss,TRUE,ifelse(1 %in% encoded,TRUE,FALSE))
+      
+      # this should do the same
+      # memory <- ifelse(KTrial[i] > Ss,TRUE,ifelse(runif(1) < KTrial[i]/Ss,TRUE,FALSE))
+      
+      
       # response from memory if K > Setsize or, with probability K/N, i.e. if runif is smaller than K/N
+      } else {
+        memory <- FALSE
+      }
       
       if (memory){
         
@@ -245,7 +268,121 @@ generate_VP_data <- function(trials, set_sizes, model, par){
           
           # remember stimulus with some precision kappa
           sbar <- circular::rvonmises(1,mu = circular::circular(StimuliTrial[[i]]),kappa,control.circular=list(units="radians"))
-         
+          
+        }
+      } else {
+        sbar <- circular::circular(runif(1)*2*pi-pi)
+      }
+      
+      if(grepl("RNplus",model)){
+        # add response noise kappa_r to memory
+        # calculate error as distance from presented target
+        err <- StimuliTrial[[i]] - circular::rvonmises(1,mu=sbar,kappa_r)
+      } else {
+        err <- StimuliTrial[[i]] - sbar
+      }
+      
+      
+      # make sure distance is represented on a circle
+      Errors[[i]] <- ifelse(err < -pi, err + 2*pi, 
+                            ifelse(err > pi, err- 2*pi, err))
+      Errors[[i]] <- as.numeric(circular::conversion.circular(circular::circular(Errors[[i]], units = "radians")))
+      
+    } 
+    
+    SzErrors <- bind_cols(tibble::tibble(error_0 = Errors),
+                          tibble::tibble(set_size = rep(set_sizes[[setsizeInd]],trialsSs))
+    )
+    Err <- bind_rows(Err,SzErrors)
+  }
+  
+  
+  return(Err)
+}
+
+generate_EP_data <- function(trials, set_sizes, model, par){
+  
+  Err <- NULL
+  
+  # Name Parameters
+  meanprec <- par[[1]]
+  alpha <- par[[2]]
+
+  if (grepl("RNplus",model)) {
+    kappa_r <- par[[3]]
+  }
+  if (model %in% c("EP_FM_RNplus","EP_U_RNplus","EP_P_RNplus")){
+    Kpar <- par[[4]]
+  } 
+  
+  if (model %in% c("EP_FM_RNminus","EP_U_RNminus","EP_P_RNminus")){
+    Kpar <- par[[3]]
+  } 
+  
+  
+  for (setsizeInd in seq_along(set_sizes)){
+    trialsSs <- trials[[setsizeInd]]
+    
+    # draw target stimuli for all trials
+    StimuliTrial <- runif(trialsSs)*2*pi-pi
+    
+    
+    # Get type of guessing right
+    if (model %in% c("EP_FM_RNminus","EP_FM_RNplus")){
+      KTrial <- ifelse(runif(trialsSs) < Kpar- floor(Kpar),ceiling(Kpar),floor(Kpar))
+      
+    } else if (model %in% c("EP_P_RNminus","EP_P_RNplus")){
+      KTrial <- rpois(trialsSs,Kpar)
+      
+    } else if (model %in% c("EP_U_RNminus","EP_U_RNplus")){
+      
+      KTrial <- round(runif(trialsSs,min = 0, max = 2*Kpar)) #for Kpar = mean(K)
+      
+    } else {
+      
+      KTrial <- rep(Inf,trialsSs)
+      
+    }
+    
+    
+    Ss <- set_sizes[[setsizeInd]]
+    
+    # determine precision for trials
+    
+    Errors <- vector("numeric",length(StimuliTrial))
+    
+    for (i in seq_along(StimuliTrial)){
+      
+      kappabar <-  meanprec/(min(KTrial[i],Ss)^(alpha))
+      
+      
+      memory <- ifelse(KTrial[i] > Ss,TRUE,ifelse(runif(1) < KTrial[i]/Ss,TRUE,FALSE))
+      # response from memory if K > Setsize or, with probability K/N, i.e. if runif is smaller than K/N
+      
+      if (memory){
+        
+        # VP models
+        # generate kappa from gamma for each trial
+        # kappagam <- rgamma(1,shape = kappabar/tau,scale = tau)
+        # 
+        # if (model %in% c("J_RNminus","J_RNplus")){
+        #   kappa <- KappafromJ(kappagam)
+        # } else {
+        #   kappa <- kappagam
+        # }
+        # 
+        kappa <- kappabar
+        
+        if (kappa < 1e-6) {
+          
+          # make a guess because rvonmises breaks, and it's basically guessing
+          sbar <- circular::circular(runif(1)*2*pi-pi)
+          
+        } else {
+          
+          # remember stimulus with some precision kappa
+          sbar <- circular::rvonmises(1,mu = circular::circular(StimuliTrial[[i]]),kappa,control.circular=list(units="radians"))
+          
         }
       } else {
         sbar <- circular::circular(runif(1)*2*pi-pi)
@@ -274,3 +411,7 @@ generate_VP_data <- function(trials, set_sizes, model, par){
   
   return(Err)
 }
+
+
+
+

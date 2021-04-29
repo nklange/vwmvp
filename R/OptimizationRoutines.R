@@ -120,7 +120,7 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
       out[[i]] <- ep_u2_routine(precision = precision, parscont = parscont, errors = error_list[[i]],
                                set_sizes = set_sizes, sz = i, model = model, predictOrLL = "LL")
       
-    } else if (model %in% c("SA_RNplus")){
+    } else if (model %in% c("SA_RNplus","VMnosetsize")){
       
       out[[i]] <- sa_routine(pars = c(parscont), errors = error_list[[i]], predictOrLL = "LL")
       
@@ -151,10 +151,16 @@ ll_vp_numint <- function(pars, model, error_list, set_sizes){
     } else if (model %in% c("UVM")){
       
       out[[i]] <- uvm_routine(pars = parscont, errors = error_list[[i]], model = model, predictOrLL = "LL")
+       
+    } else if (model %in% c("VPnosetsize")) {
       
-    }
-    
-    
+      out[[i]] <- vpnosetsize_routine(pars = c(precision,parscont), errors = error_list[[i]],
+                                      model = model, predictOrLL = "LL")
+    } else if (model %in% c("VPplusnosetsize")) {
+      
+      out[[i]] <- vpplusnosetsize_routine(pars = c(precision,parscont), errors = error_list[[i]],
+                                      model = model, predictOrLL = "LL")
+    } 
   }
   
   return(sum(out))
@@ -1038,6 +1044,7 @@ vp_u2_routine <- function(precision, parscont, errors, set_sizes, sz, model, pre
   
 }
 
+
 sa_routine <- function(pars, errors, predictOrLL){
   
   out <- rnminus_integration(pars,errors)
@@ -1243,5 +1250,61 @@ uvm_routine <- function(pars, errors, model, predictOrLL){
   } else if (predictOrLL == "predict"){
     return(out)
   }
+  
+}
+
+vpnosetsize_routine <- function(pars, errors, model, predictOrLL){
+  
+  coreFunction <- "cint_fun_MK_RNminus"
+  
+  out <- vector("numeric", length(errors))
+  
+  for (i in seq_along(out)) {
+    out[i] <- vp_integration(error = errors[i], pars = pars, 
+                             coreFunction = coreFunction)
+  }
+  
+  
+  if (predictOrLL == "LL") {
+    
+    if (any(out == 0) | any(!is.finite(out))){
+      
+      return(1e6)
+      
+    } else {
+      return(-sum(log(out)))
+    }
+  } else if (predictOrLL == "predict"){
+    return(out)
+  }
+  
+  
+}
+
+vpplusnosetsize_routine <- function(pars, errors, model, predictOrLL){
+  
+  coreFunction <- "cint_fun_MK_RNplus"
+  
+  out <- vector("numeric", length(errors))
+  
+  for (i in seq_along(out)) {
+    out[i] <- vp_integration(error = errors[i], pars = pars, 
+                             coreFunction = coreFunction)
+  }
+  
+  
+  if (predictOrLL == "LL") {
+    
+    if (any(out == 0) | any(!is.finite(out))){
+      
+      return(1e6)
+      
+    } else {
+      return(-sum(log(out)))
+    }
+  } else if (predictOrLL == "predict"){
+    return(out)
+  }
+  
   
 }

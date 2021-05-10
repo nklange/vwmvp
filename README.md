@@ -1,6 +1,6 @@
 # vwmvp
 
-Collection of functions to fit (mostly) variable precision models to data produced by the delayed estimation paradigm in visual working memory. Wrapped as a package to make its use across various rstudio projects a little easier.
+Collection of functions to fit (mostly) variable precision models to data produced by the delayed estimation paradigm in visual working memory. Wrapped as a package to make its use across various rstudio projects/files easier.
 
 # Pre-requisites for data
 
@@ -32,37 +32,37 @@ Proper Term | Name in package
 -----|--------------
 VP(J)A-    | J_RNminus      
 VP(J)A+        | J_RNplus
-VP($\kappa$)A- | MK_RNminus
-VP($\kappa$)A+ | MK_RNplus
-VP($\kappa$)F- | MK_FM_RNminus
-VP($\kappa$)F+ | MK_FM_RNplus
-VP($\kappa$)P- | MK_P_RNminus
-VP($\kappa$)P+ | MK_P_RNplus
-VP($\kappa$)U- | MK_U_RNminus
-VP($\kappa$)U+ | MK_U_RNplus
-EP($\kappa$)A- | EP_RNminus
-EP($\kappa$)A+ | EP_RNplus
-EP($\kappa$)F- | EP_FM_RNminus
-EP($\kappa$)F+ | EP_FM_RNplus
-EP($\kappa$)P- | EP_P_RNminus
-EP($\kappa$)P+ | EP_P_RNplus
-EP($\kappa$)U- | EP_U_RNminus
-EP($\kappa$)U+ | EP_U_RNplus
-SA($\kappa$)A+ | SA_RNplus
-SA($\kappa$)F- | SA_F_RNminus
-SA($\kappa$)F+ | SA_F_RNplus
-SA($\kappa$)P- | SA_P_RNminus
-SA($\kappa$)P+ | SA_P_RNplus
-SA($\kappa$)U- | SA_U_RNminus
-SA($\kappa$)U+ | SA_U_RNplus
+VP(&kappa;)A- | MK_RNminus
+VP(&kappa;)A+ | MK_RNplus
+VP(&kappa;)F- | MK_FM_RNminus
+VP(&kappa;)F+ | MK_FM_RNplus
+VP(&kappa;)P- | MK_P_RNminus
+VP(&kappa;)P+ | MK_P_RNplus
+VP(&kappa;)U- | MK_U_RNminus
+VP(&kappa;)U+ | MK_U_RNplus
+EP(&kappa;)A- | EP_RNminus
+EP(&kappa;)A+ | EP_RNplus
+EP(&kappa;)F- | EP_FM_RNminus
+EP(&kappa;)F+ | EP_FM_RNplus
+EP(&kappa;)P- | EP_P_RNminus
+EP(&kappa;)P+ | EP_P_RNplus
+EP(&kappa;)U- | EP_U_RNminus
+EP(&kappa;)U+ | EP_U_RNplus
+SA(&kappa;)A+ | SA_RNplus
+SA(&kappa;)F- | SA_F_RNminus
+SA(&kappa;)F+ | SA_F_RNplus
+SA(&kappa;)P- | SA_P_RNminus
+SA(&kappa;)P+ | SA_P_RNplus
+SA(&kappa;)U- | SA_U_RNminus
+SA(&kappa;)U+ | SA_U_RNplus
 
 where:
 
 * VP: variable precision
 * EP: equal precision
 * SA: slots and averaging
-* $\kappa$: mean memory precision parameterized directly as $\kappa$
-* $J$: mean memory precision parameterized as Fisher information
+* &kappa;: mean memory precision parameterized directly as $\kappa$
+* J: mean memory precision parameterized as Fisher information
 * A: unlimited memory capacity
 * F/FM: fixed memory capacity limit
 * P: variable, poisson-distributed capacity limit
@@ -74,7 +74,7 @@ Additionally, some derivatives with slightly different implementation of the cap
 
 # Fitting routine
 
-The top-level fitting function is **vwmvp::FitVP()** (in FittingAlgorithms.R). In principle, this can be used for the simulation approach for VP($\phi$)A$\pm$ models for the numerical integration approach for all models (where necessary). 
+The top-level fitting function is **vwmvp::FitVP()** (in FittingAlgorithms.R). In principle, this can be used for the simulation approach for VP(&phi;)A&plusmn; models for the numerical integration approach for all models (where necessary). 
 
 For the simulation approach (method = "sim"):
 
@@ -140,7 +140,7 @@ where:
 
 ## Interpreting K
 
-The K parameter is estimated in models with limited memory capacity. The value produced as the parameter estimate can be between 0 and $\infty$. In P/P2 models, K indicates the mean of the poisson distribution, formally Pois($\lambda$ = K). In F/FM/FM2 models, it indicates the fixed capacity limit. In these models the limit cannot exceed the maximum set size in an experiment, i.e., as K >= max(set size), all items are remembered. For parameter estimates of K > max(set size) therefore K = $\infty$. In the U/U2 models we discuss K as representing the mean of the uniform distribution (analogously to the poisson-distributed capacity limit), where the limit can range from 0 to 2K, with mean = K. Throughout the functions collected here (with one exception), we have actually implemented a range of 0 to K, with mean = K/2. When aiming to report the $K$ parameter estimate, the given value should therefore be divided by 2 to represent the mean of the distribution.
+The K parameter is estimated in models with limited memory capacity. The value produced as the parameter estimate can be between 0 and &infin;. In P/P2 models, K indicates the mean of the poisson distribution, formally Pois(&lambda; = K). In F/FM/FM2 models, it indicates the fixed capacity limit. In these models the limit cannot exceed the maximum set size in an experiment, i.e., as K >= max(set size), all items are remembered. For parameter estimates of K > max(set size) therefore K = &infin;. In the U/U2 models we discuss K as representing the mean of the uniform distribution (analogously to the poisson-distributed capacity limit), where the limit can range from 0 to 2K, with mean = K. Throughout the functions collected here (with one exception), we have actually implemented a range of 0 to K, with mean = K/2. When aiming to report the K parameter estimate, the given value of the parameter estimate should therefore be divided by 2 to represent the mean of the distribution.
 
 # Making predictions
 
@@ -150,4 +150,4 @@ In **vwmvp::generate_data()** (in PredictionRoutines.R), trials for a given mode
 
 In **vwmvp::predict_data()** (in PredictionRoutines.R), the probability distribution associated with a model/parameters is reproduced using the fitting routines. By sampling from this, trials can be simulated.
 
-[vwmvp_predictvsgenerate.R](github.com) shows that both approaches lead to approximately equivalent simulations, given a sufficiently high number of trials. Note: In vwmvp::generate_data(), the limits in U models is defined as ranging from 0 to 2K (versus 0 to K in vwmvp::predict_data). Hence, for equivalent results, the input-K value in vwmvp::predict_data() has to be double that of the value in vwmvp::generate_data().
+[vwmvp_predictvsgenerate.R](https://github.com/nklange/InferenceModelComparison/blob/master/vwmvp_predictvsgenerate.R) shows that both approaches lead to approximately equivalent simulations, given a sufficiently high number of trials. Note: In vwmvp::generate_data(), the limits in U models is defined as ranging from 0 to 2K (versus 0 to K in vwmvp::predict_data()). Hence, for equivalent results, the input-K value in vwmvp::predict_data() has to be double that of the value in vwmvp::generate_data().
